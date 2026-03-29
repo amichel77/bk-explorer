@@ -112,8 +112,8 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   display:none;
   position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
   background:var(--sf);border:1px solid var(--bd);border-radius:10px;
-  padding:6px 12px;gap:10px;z-index:1000;align-items:center;
-  box-shadow:0 4px 20px rgba(0,0,0,0.5);font-family:'Space Mono',monospace;font-size:11px;
+  padding:6px 12px;gap:10px;z-index:1000;align-items:center;flex-wrap:wrap;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);font-family:'Space Mono',monospace;font-size:11px;max-width:90vw;
 }
 .mob-lb .lb-entry{display:flex;align-items:center;gap:4px;color:var(--dm)}
 .mob-lb .lb-count{font-weight:700;font-size:12px}
@@ -400,7 +400,7 @@ async function init(){
   Object.entries(C).forEach(([k,v])=>{
     if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;b.title=v.l;
-    b.onclick=()=>{if(ac===k){cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));ac=null}else{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k}};cpk.appendChild(b);
+    b.onclick=()=>{if(ac===k)return;cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k};cpk.appendChild(b);
   });
   const er=document.createElement('div');er.className='cb er';er.textContent='✕';er.title='Erase';
   er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac=null};cpk.appendChild(er);
@@ -411,17 +411,12 @@ async function init(){
     if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;
     b.onclick=()=>{
-      if(ac===k){
-        mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-        cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-        ac=null;
-      }else{
-        mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-        cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-        b.classList.add('on');
-        cpk.querySelectorAll('.cb').forEach(x=>{if(x.style.background===v.h)x.classList.add('on')});
-        ac=k;
-      }
+      if(ac===k)return;
+      mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
+      cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      cpk.querySelectorAll('.cb').forEach(x=>{if(x.style.background===v.h)x.classList.add('on')});
+      ac=k;
     };
     mp.appendChild(b);
   });
