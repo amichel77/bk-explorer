@@ -289,7 +289,7 @@ function stats(){
   });
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   const lb=document.getElementById('lb');
-  const lbHtml=sorted.map(([k,n])=>{const extra=k==='white'?';box-shadow:0 0 0 1px #888':'';const tc=k==='white'?'#cccccc':C[k].h;return '<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+extra+'"></div><span class="lb-count" style="color:'+tc+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>'}).join('');
+  const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
   lb.innerHTML=lbHtml;
   document.getElementById('mob-lb').innerHTML=lbHtml;
 }
@@ -446,8 +446,7 @@ async function init(){
   const lg=document.getElementById('lg');
   const mlg=document.getElementById('mob-legend');
   Object.entries(C).forEach(([k,v])=>{
-    const extra=k==='white'?';box-shadow:0 0 0 1px #888':'';
-    const h='<div class="le"><div class="ld" style="background:'+v.h+extra+'"></div>'+v.l+'</div>';
+    const h='<div class="le"><div class="ld" style="background:'+v.h+'"></div>'+v.l+'</div>';
     lg.innerHTML+=h;mlg.innerHTML+=h;
   });
   const nv='<div class="le"><div class="ld" style="background:'+U+'"></div>Not visited</div>';
