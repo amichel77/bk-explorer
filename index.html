@@ -354,7 +354,7 @@ function applySegStyle(id){
 
 function clickSeg(id,name){
   if(ac===null){
-    if(SD[id]){delete SD[id];dirtyIds[id]=Date.now();dirtyIds[id]=Date.now();applySegStyle(id);dsv();stats();renderList(document.getElementById('search').value);toast('Cleared: '+name)}
+    return;
   }else{
     // Add this color to the array (or create new array)
     if(!SD[id]){
