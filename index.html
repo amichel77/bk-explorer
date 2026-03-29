@@ -88,9 +88,12 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .maplibregl-popup-content{background:#14141f!important;color:#e8e8f0!important;border:1px solid #2a2a3e!important;font-family:'Space Mono',monospace!important;font-size:11px!important;border-radius:5px!important;padding:4px 10px!important;box-shadow:0 4px 12px rgba(0,0,0,.5)!important}
 @media(max-width:768px){
   .sb{display:none}
-  .stats{gap:6px;font-size:10px;flex-shrink:1;overflow:visible}
+  header{padding:8px 10px;flex-wrap:wrap;gap:4px}
+  .logo h1{font-size:13px}
+  .logo-icon{width:26px;height:26px;font-size:13px}
+  .stats{gap:6px;font-size:10px;flex-shrink:0}
   .stat strong{font-size:11px}
-  .stat span{font-size:10px}
+  .stat span{font-size:9px}
   .mob-picker{display:flex!important}
 }
 .mob-picker{
@@ -114,8 +117,8 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   display:none;
   position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
   background:var(--sf);border:1px solid var(--bd);border-radius:10px;
-  padding:6px 12px;gap:10px;z-index:1000;align-items:center;flex-wrap:wrap;justify-content:center;
-  box-shadow:0 4px 20px rgba(0,0,0,0.5);font-family:'Space Mono',monospace;font-size:11px;max-width:90vw;
+  padding:6px 12px;gap:6px 10px;z-index:1000;align-items:center;flex-wrap:wrap;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);font-family:'Space Mono',monospace;font-size:11px;max-width:95vw;
 }
 .mob-lb .lb-entry{display:flex;align-items:center;gap:4px;color:var(--dm)}
 .mob-lb .lb-count{font-weight:700;font-size:12px}
