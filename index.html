@@ -154,7 +154,7 @@ const C={red:{h:'#ef4444',l:'Alex'},blue:{h:'#3b82f6',l:'Zack'},yellow:{h:'#facc
 const COL_KEYS=['red','blue','yellow','orange','purple','green'];
 const colIdx=k=>COL_KEYS.indexOf(k)+1;
 const U='#4a4a6e',SK='bk_blk_v12';
-let map,geojson,nameSeg,SD={},ac='green',popup,hlName=null;
+let map,geojson,nameSeg,SD={},ac='red',popup,hlName=null;
 
 function dec(s){const b=atob(s);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return JSON.parse(pako.inflate(a,{to:'string'}))}
 
@@ -384,6 +384,7 @@ async function init(){
 
   const cpk=document.getElementById('cpk');
   Object.entries(C).forEach(([k,v])=>{
+    if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;b.title=v.l;
     b.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k};cpk.appendChild(b);
   });
@@ -393,6 +394,7 @@ async function init(){
   // Mobile color picker
   const mp=document.getElementById('mob-picker');
   Object.entries(C).forEach(([k,v])=>{
+    if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;
     b.onclick=()=>{
       mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
@@ -454,7 +456,17 @@ async function init(){
         if(hovId!==null&&hovId!==fid)map.setFeatureState({source:'streets',id:hovId},{hover:false});
         hovId=fid;
         map.setFeatureState({source:'streets',id:fid},{hover:true});
-        popup.setLngLat(e.lngLat).setHTML(f.properties.n).addTo(map);
+        let html=f.properties.n;
+        const val=SD[fid];
+        if(val){
+          const arr=Array.isArray(val)?val:[val];
+          const unique=[...new Set(arr)];
+          if(unique.length>=2){
+            const names=unique.map(k=>C[k]?'<span style="color:'+C[k].h+'">'+C[k].l+'</span>':'').filter(Boolean);
+            html+='<br><span style="font-size:11px;opacity:0.8">'+names.join(', ')+'</span>';
+          }
+        }
+        popup.setLngLat(e.lngLat).setHTML(html).addTo(map);
       }
     });
     map.on('mouseleave','streets-hit',function(){
