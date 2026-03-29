@@ -32,13 +32,13 @@ window.addEventListener('DOMContentLoaded',function(){
 :root{--bg:#0a0a0f;--sf:#14141f;--sf2:#1e1e2e;--bd:#2a2a3e;--tx:#e8e8f0;--dm:#8888a0;--ac:#00e5a0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column}
 header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:1000;flex-shrink:0}
-.lb-bar{background:var(--sf);border-bottom:1px solid var(--bd);padding:6px 16px;display:flex;align-items:center;justify-content:center;z-index:999;flex-shrink:0}
+.lb-bar{background:var(--sf);border-bottom:1px solid var(--bd);padding:6px 16px;display:flex;align-items:center;justify-content:flex-end;z-index:999;flex-shrink:0}
 .lb{display:flex;align-items:center;gap:14px;font-family:'Space Mono',monospace;font-size:11px}
 .lb-entry{display:flex;align-items:center;gap:5px;color:var(--dm)}
 .lb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .lb-count{font-weight:700;font-size:13px}
 .lb-name{opacity:0.7;font-size:11px}
-@media(max-width:768px){.lb{gap:10px}.lb-entry{gap:4px}.lb-count{font-size:12px}.lb-bar{padding:5px 12px}}
+@media(max-width:768px){.lb-bar{display:none}.mob-lb{display:flex!important}}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:32px;height:32px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px}
 .logo h1{font-family:'Space Mono',monospace;font-size:15px}
@@ -108,6 +108,16 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 }
 @media(max-width:768px){.mob-legend{display:flex!important}}
 .mob-legend .le{font-size:10px}
+.mob-lb{
+  display:none;
+  position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
+  background:var(--sf);border:1px solid var(--bd);border-radius:10px;
+  padding:6px 12px;gap:10px;z-index:1000;align-items:center;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);font-family:'Space Mono',monospace;font-size:11px;
+}
+.mob-lb .lb-entry{display:flex;align-items:center;gap:4px;color:var(--dm)}
+.mob-lb .lb-count{font-weight:700;font-size:12px}
+.mob-lb .lb-name{display:none}
 .mob-search{display:none;position:fixed;top:56px;left:0;right:0;z-index:1001;padding:8px;background:var(--sf);border-bottom:1px solid var(--bd)}
 .mob-search-input{width:100%;padding:9px 12px 9px 34px;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
 .mob-search-input:focus{border-color:var(--ac)}
@@ -142,6 +152,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
     
 </div>
 </div>
+<div class="mob-lb" id="mob-lb"></div>
 <div class="mob-search" id="mob-search"><span class="mob-search-icon">🔍</span><input type="text" class="mob-search-input" id="mob-search-input" placeholder="Search streets..."><div class="mob-results" id="mob-results"></div></div>
 <div class="mob-legend" id="mob-legend"></div>
 <div class="mob-picker" id="mob-picker"></div>
@@ -270,7 +281,9 @@ function stats(){
   });
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   const lb=document.getElementById('lb');
-  lb.innerHTML=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
+  const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
+  lb.innerHTML=lbHtml;
+  document.getElementById('mob-lb').innerHTML=lbHtml;
 }
 
 function highlightStreet(name){
@@ -387,7 +400,7 @@ async function init(){
   Object.entries(C).forEach(([k,v])=>{
     if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;b.title=v.l;
-    b.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k};cpk.appendChild(b);
+    b.onclick=()=>{if(ac===k){cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));ac=null}else{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k}};cpk.appendChild(b);
   });
   const er=document.createElement('div');er.className='cb er';er.textContent='✕';er.title='Erase';
   er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac=null};cpk.appendChild(er);
@@ -398,12 +411,17 @@ async function init(){
     if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;
     b.onclick=()=>{
-      mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-      cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');
-      // Also highlight matching desktop button
-      cpk.querySelectorAll('.cb').forEach(x=>{if(x.style.background===v.h)x.classList.add('on')});
-      ac=k;
+      if(ac===k){
+        mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
+        cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
+        ac=null;
+      }else{
+        mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
+        cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
+        b.classList.add('on');
+        cpk.querySelectorAll('.cb').forEach(x=>{if(x.style.background===v.h)x.classList.add('on')});
+        ac=k;
+      }
     };
     mp.appendChild(b);
   });
