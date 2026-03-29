@@ -148,14 +148,17 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .mob-legend .le{font-size:10px}
 .mob-lb{
   display:none;
-  position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
-  background:var(--sf);border:1px solid var(--bd);border-radius:10px;
-  padding:6px 12px;gap:6px 10px;z-index:1000;align-items:center;flex-wrap:wrap;justify-content:center;
-  box-shadow:0 4px 20px rgba(0,0,0,0.5);font-family:'Space Mono',monospace;font-size:11px;max-width:95vw;
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:var(--sf);border:1px solid var(--bd);border-radius:12px;
+  padding:16px 20px;gap:8px;z-index:1002;flex-direction:column;align-items:stretch;
+  box-shadow:0 8px 30px rgba(0,0,0,0.6);font-family:'Space Mono',monospace;font-size:12px;
+  min-width:200px;
 }
-.mob-lb .lb-entry{display:flex;align-items:center;gap:4px;color:var(--dm)}
-.mob-lb .lb-count{font-weight:700;font-size:12px}
-.mob-lb .lb-name{font-size:10px}
+.mob-lb-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dm);margin-bottom:4px;text-align:center}
+.mob-lb .lb-entry{display:flex;align-items:center;gap:6px;color:var(--dm);padding:4px 0}
+.mob-lb .lb-count{font-weight:700;font-size:13px;width:30px}
+.mob-lb .lb-name{font-size:11px}
+.mob-lb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1001}
 .mob-search{display:none;position:fixed;top:56px;left:0;right:0;z-index:1001;padding:8px;background:var(--sf);border-bottom:1px solid var(--bd)}
 .mob-search-input{width:100%;padding:9px 12px 9px 34px;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
 .mob-search-input:focus{border-color:var(--ac)}
@@ -172,7 +175,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 <body>
 <div class="ov" id="ov"><div class="sp"></div><div class="lt" id="lt">Loading...</div><div class="pbg"><div class="pf" id="pb"></div></div></div>
 <header>
-<div class="logo"><div class="logo-icon">🗺</div><h1>BK<span>.</span>EXPLORER</h1><button class="mob-btn" id="mob-search-btn"><span class="mob-btn-icon">🔍</span><span class="mob-btn-label">Search</span></button><button class="mob-btn" id="mob-lb-btn"><span class="mob-btn-icon">🏆</span><span class="mob-btn-label">Board</span></button></div>
+<div class="logo"><div class="logo-icon">🗺</div><h1>BK<span>.</span>EXPLORER</h1><button class="mob-btn" id="mob-search-btn"><span class="mob-btn-icon">🔍</span><span class="mob-btn-label">Search</span></button><button class="mob-btn" id="mob-lb-btn"><span class="mob-btn-icon">🏆</span><span class="mob-btn-label">Leaderboard</span></button></div>
 <div class="stats">
   <div class="stat"><strong id="vc">0</strong><span>blocks</span></div>
   <div class="stat"><strong id="tc">0</strong><span>total</span></div>
@@ -196,7 +199,8 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
     
 </div>
 </div>
-<div class="mob-lb" id="mob-lb"></div>
+<div class="mob-lb-overlay" id="mob-lb-overlay"></div>
+<div class="mob-lb" id="mob-lb"><div class="mob-lb-title">Leaderboard</div></div>
 <div class="mob-search" id="mob-search"><span class="mob-search-icon">🔍</span><input type="text" class="mob-search-input" id="mob-search-input" placeholder="Search streets..."><div class="mob-results" id="mob-results"></div></div>
 <div class="mob-legend" id="mob-legend"></div>
 <div class="mob-picker" id="mob-picker"></div>
@@ -415,7 +419,7 @@ function stats(){
   const lb=document.getElementById('lb');
   const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
   lb.innerHTML=lbHtml;
-  document.getElementById('mob-lb').innerHTML=lbHtml;
+  document.getElementById('mob-lb').innerHTML='<div class="mob-lb-title">Leaderboard</div>'+lbHtml;
   updateNhoods();
 }
 
@@ -732,7 +736,10 @@ async function init(){
     // Mobile leaderboard toggle
     const mobLbBtn=document.getElementById('mob-lb-btn');
     const mobLbEl=document.getElementById('mob-lb');
-    mobLbBtn.onclick=()=>{mobLbEl.classList.toggle('show')};
+    const mobLbOv=document.getElementById('mob-lb-overlay');
+    function toggleMobLb(){const on=mobLbEl.classList.toggle('show');mobLbOv.style.display=on?'block':'none'}
+    mobLbBtn.onclick=toggleMobLb;
+    mobLbOv.onclick=toggleMobLb;
 
     // Mobile search
     const mobBtn=document.getElementById('mob-search-btn');
