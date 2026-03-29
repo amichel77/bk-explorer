@@ -51,15 +51,17 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 #map{flex:1;cursor:crosshair}
 .maplibregl-canvas{cursor:crosshair!important}
 .sb{width:300px;background:var(--sf);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width 0.2s}
-.sb.mini{width:52px;overflow:visible}
-.sb.mini .sec,.sb.mini .sl,.sb.mini .leg{display:none}
-.sb.mini .sec:first-child{display:block;padding:8px 9px;border:none}
-.sb.mini .sec:first-child h2{display:none}
+.sb.mini{width:52px}
+.sb.mini .sec{display:none}
+.sb.mini .sl,.sb.mini .leg{display:none}
+.sb.mini .sec.paint-sec{display:block;padding:8px 9px;border:none}
+.sb.mini .sec.paint-sec h2{display:none}
 .sb.mini .cp{flex-direction:column;gap:6px}
+.sb.mini .sb-toggle{right:auto;left:50%;transform:translateX(-50%)}
 .sb-toggle{position:absolute;top:8px;right:8px;background:var(--sf2);border:1px solid var(--bd);color:var(--dm);width:24px;height:24px;border-radius:5px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:1}
 .sb{position:relative}
-.sec{padding:14px;border-bottom:1px solid var(--bd)}
-.sec h2{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dm);margin-bottom:10px}
+.sec{padding:10px 14px;border-bottom:1px solid var(--bd)}
+.sec h2{font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dm);margin-bottom:6px}
 .cp{display:flex;flex-wrap:wrap;gap:6px}
 .cb{width:34px;height:34px;border-radius:7px;border:2px solid transparent;cursor:pointer;transition:all 0.15s}
 .cb:hover{transform:scale(1.12)}
@@ -87,7 +89,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .fbtn{padding:4px 10px;border-radius:5px;border:1px solid var(--bd);background:var(--sf2);color:var(--dm);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
 .fbtn:hover{border-color:var(--ac)}
 .fbtn.fon{border-color:#fff;color:var(--tx);background:var(--bd)}
-.nh-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}
+.nh-list{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto}
 .nh-list::-webkit-scrollbar{width:4px}
 .nh-list::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
 .nh-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dm)}
@@ -169,7 +171,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 <div id="map"></div>
 <div class="sb" id="sb">
   <button class="sb-toggle" id="sb-toggle">◀</button>
-  <div class="sec"><h2>Paint Mode</h2><div class="cp" id="cpk"></div></div>
+  <div class="sec paint-sec"><h2>Paint Mode</h2><div class="cp" id="cpk"></div></div>
   <div class="sec"><h2>Filter by Person</h2><div class="fb" id="fb"></div></div>
   <div class="sec"><h2>Neighborhoods</h2><div class="nh-list" id="nh-list"></div></div>
   <div class="sec"><input type="text" class="si" id="search" placeholder="Search streets..." /></div>
@@ -618,7 +620,7 @@ async function init(){
         const id=f.properties.i;
         if(activeFilter){
           const val=SD[id];
-          if(!val){map.setFeatureState({source:'streets',id},{c:0,dim:true});return}
+          if(!val){map.setFeatureState({source:'streets',id},{c:0,dim:false});return}
           const arr=Array.isArray(val)?val:[val];
           if(arr.includes(activeFilter)){map.setFeatureState({source:'streets',id},{c:displayColor(id),dim:false})}
           else{map.setFeatureState({source:'streets',id},{c:displayColor(id),dim:true})}
