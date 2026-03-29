@@ -353,8 +353,9 @@ function applySegStyle(id){
 }
 
 function clickSeg(id,name){
-  if(ac===null){
-    return;
+  if(ac===null){return}
+  if(ac==='erase'){
+    if(SD[id]){delete SD[id];dirtyIds[id]=Date.now();applySegStyle(id);dsv();stats();renderList(document.getElementById('search').value);toast('Cleared: '+name)}
   }else{
     // Add this color to the array (or create new array)
     if(!SD[id]){
@@ -403,7 +404,7 @@ async function init(){
     b.onclick=()=>{if(ac===k){cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));ac=null}else{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k}};cpk.appendChild(b);
   });
   const er=document.createElement('div');er.className='cb er';er.textContent='✕';er.title='Erase';
-  er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac=null};cpk.appendChild(er);
+  er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac='erase'};cpk.appendChild(er);
 
   // Mobile color picker
   const mp=document.getElementById('mob-picker');
@@ -429,7 +430,7 @@ async function init(){
   mer.onclick=()=>{
     mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
     cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
-    mer.classList.add('on');ac=null;
+    mer.classList.add('on');ac='erase';
   };
   mp.appendChild(mer);
 
