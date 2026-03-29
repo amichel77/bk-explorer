@@ -88,7 +88,8 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .maplibregl-popup-content{background:#14141f!important;color:#e8e8f0!important;border:1px solid #2a2a3e!important;font-family:'Space Mono',monospace!important;font-size:11px!important;border-radius:5px!important;padding:4px 10px!important;box-shadow:0 4px 12px rgba(0,0,0,.5)!important}
 @media(max-width:768px){
   .sb{display:none}
-  .stats{gap:8px}
+  .stats{gap:6px;font-size:10px;flex-shrink:1;overflow:visible}
+  .stat strong{font-size:11px}
   .stat span{font-size:10px}
   .mob-picker{display:flex!important}
 }
@@ -285,7 +286,7 @@ function stats(){
   });
   const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   const lb=document.getElementById('lb');
-  const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
+  const lbHtml=sorted.map(([k,n])=>{const extra=k==='white'?';box-shadow:0 0 0 1px #888':'';return '<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+extra+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>'}).join('');
   lb.innerHTML=lbHtml;
   document.getElementById('mob-lb').innerHTML=lbHtml;
 }
@@ -441,8 +442,9 @@ async function init(){
 
   const lg=document.getElementById('lg');
   const mlg=document.getElementById('mob-legend');
-  Object.values(C).forEach(v=>{
-    const h='<div class="le"><div class="ld" style="background:'+v.h+'"></div>'+v.l+'</div>';
+  Object.entries(C).forEach(([k,v])=>{
+    const extra=k==='white'?';box-shadow:0 0 0 1px #888':'';
+    const h='<div class="le"><div class="ld" style="background:'+v.h+extra+'"></div>'+v.l+'</div>';
     lg.innerHTML+=h;mlg.innerHTML+=h;
   });
   const nv='<div class="le"><div class="ld" style="background:'+U+'"></div>Not visited</div>';
