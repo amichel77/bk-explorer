@@ -400,7 +400,8 @@ async function init(){
   Object.entries(C).forEach(([k,v])=>{
     if(k==='green')return;
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;b.title=v.l;
-    b.onclick=()=>{if(ac===k)return;cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k};cpk.appendChild(b);
+    b.onclick=()=>{if(ac===k)return;cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k};
+    b.ondblclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));ac=null};cpk.appendChild(b);
   });
   const er=document.createElement('div');er.className='cb er';er.textContent='✕';er.title='Erase';
   er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac=null};cpk.appendChild(er);
@@ -418,6 +419,7 @@ async function init(){
       cpk.querySelectorAll('.cb').forEach(x=>{if(x.style.background===v.h)x.classList.add('on')});
       ac=k;
     };
+    b.ondblclick=()=>{mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));ac=null};
     mp.appendChild(b);
   });
   const mer=document.createElement('div');mer.className='cb er';mer.textContent='✕';
