@@ -7,11 +7,13 @@ gh repo create bk-explorer --public --source=. --push 2>/dev/null || true
 # Push to main
 git add -A
 git commit -m "deploy bk explorer"
-git push origin main
+BRANCH=$(git branch --show-current)
+git push origin "$BRANCH"
 
 # Enable GitHub Pages on main branch
-gh api repos/{owner}/bk-explorer/pages -X POST -f source.branch=main -f source.path=/ 2>/dev/null || \
-gh api repos/{owner}/bk-explorer/pages -X PUT -f source.branch=main -f source.path=/
+OWNER=$(gh api user -q .login)
+gh api "repos/${OWNER}/bk-explorer/pages" -X POST -f source.branch="$BRANCH" -f source.path=/ 2>/dev/null || \
+gh api "repos/${OWNER}/bk-explorer/pages" -X PUT -f source.branch="$BRANCH" -f source.path=/
 
 echo ""
 echo "Done! Your site will be live at:"
