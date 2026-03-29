@@ -32,6 +32,12 @@ window.addEventListener('DOMContentLoaded',function(){
 :root{--bg:#0a0a0f;--sf:#14141f;--sf2:#1e1e2e;--bd:#2a2a3e;--tx:#e8e8f0;--dm:#8888a0;--ac:#00e5a0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column}
 header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:1000;flex-shrink:0}
+.lb{display:flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-size:11px}
+.lb-entry{display:flex;align-items:center;gap:4px;color:var(--dm)}
+.lb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.lb-count{font-weight:700;font-size:12px}
+.lb-name{opacity:0.7}
+@media(max-width:768px){.lb-name{display:none}.lb{gap:6px}.lb-entry{gap:3px}.lb-count{font-size:10px}}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:32px;height:32px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px}
 .logo h1{font-family:'Space Mono',monospace;font-size:15px}
@@ -92,12 +98,31 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   box-shadow:0 4px 20px rgba(0,0,0,0.5);
 }
 .mob-picker .cb{width:30px;height:30px;border-radius:6px}
+.mob-legend{
+  display:none;
+  position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
+  background:var(--sf);border:1px solid var(--bd);border-radius:10px;
+  padding:6px 12px;gap:8px;z-index:1000;align-items:center;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);flex-wrap:wrap;justify-content:center;
+}
+@media(max-width:768px){.mob-legend{display:flex!important}}
+.mob-legend .le{font-size:10px}
+.mob-search{display:none;position:fixed;top:56px;left:0;right:0;z-index:1001;padding:8px;background:var(--sf);border-bottom:1px solid var(--bd)}
+.mob-search-input{width:100%;padding:9px 12px 9px 34px;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.mob-search-input:focus{border-color:var(--ac)}
+.mob-search-input::placeholder{color:var(--dm)}
+.mob-search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--dm);font-size:14px;pointer-events:none}
+.mob-results{position:fixed;top:100px;left:0;right:0;bottom:0;z-index:1000;background:var(--bg);overflow-y:auto;display:none}
+.mob-results .sr{padding:12px 14px;border-bottom:1px solid var(--bd)}
+.mob-search-btn{display:none;background:none;border:none;color:var(--dm);font-size:18px;cursor:pointer;padding:4px}
+@media(max-width:768px){.mob-search-btn{display:block}}
 </style>
 </head>
 <body>
 <div class="ov" id="ov"><div class="sp"></div><div class="lt" id="lt">Loading...</div><div class="pbg"><div class="pf" id="pb"></div></div></div>
 <header>
-<div class="logo"><div class="logo-icon">🗺</div><h1>BK<span>.</span>EXPLORER</h1></div>
+<div class="logo"><div class="logo-icon">🗺</div><h1>BK<span>.</span>EXPLORER</h1><button class="mob-search-btn" id="mob-search-btn">🔍</button></div>
+<div class="lb" id="lb"></div>
 <div class="stats">
   <div class="stat"><strong id="vc">0</strong><span>blocks</span></div>
   <div class="stat"><strong id="tc">0</strong><span>total</span></div>
@@ -116,6 +141,8 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
     
 </div>
 </div>
+<div class="mob-search" id="mob-search"><span class="mob-search-icon">🔍</span><input type="text" class="mob-search-input" id="mob-search-input" placeholder="Search streets..."><div class="mob-results" id="mob-results"></div></div>
+<div class="mob-legend" id="mob-legend"></div>
 <div class="mob-picker" id="mob-picker"></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -230,14 +257,25 @@ function stats(){
   document.getElementById('vc').textContent=v;
   document.getElementById('tc').textContent=t;
   document.getElementById('pc').textContent=t?(v/t*100).toFixed(1)+'%':'0%';
+  // Leaderboard
+  const counts={};
+  Object.keys(C).forEach(k=>{if(k!=='green')counts[k]=0});
+  Object.values(SD).forEach(val=>{
+    const arr=Array.isArray(val)?val:[val];
+    arr.forEach(k=>{if(k!=='green'&&counts[k]!==undefined)counts[k]++});
+  });
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const lb=document.getElementById('lb');
+  lb.innerHTML=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
 }
 
 function highlightStreet(name){
   if(hlName===name)return;clearHL();hlName=name;
   if(!name||!nameSeg[name])return;
   map.setFilter('streets-highlight',['in',['get','i'],['literal',nameSeg[name]]]);
+  map.setFilter('streets-highlight-glow',['in',['get','i'],['literal',nameSeg[name]]]);
 }
-function clearHL(){if(hlName){hlName=null;map.setFilter('streets-highlight',['==',['get','i'],-1])}}
+function clearHL(){if(hlName){hlName=null;map.setFilter('streets-highlight',['==',['get','i'],-1]);map.setFilter('streets-highlight-glow',['==',['get','i'],-1])}}
 
 function renderList(q){
   q=(q||'').toLowerCase();
@@ -372,8 +410,13 @@ async function init(){
   mp.appendChild(mer);
 
   const lg=document.getElementById('lg');
-  Object.values(C).forEach(v=>{lg.innerHTML+='<div class="le"><div class="ld" style="background:'+v.h+'"></div>'+v.l+'</div>'});
-  lg.innerHTML+='<div class="le"><div class="ld" style="background:'+U+'"></div>Not visited</div>';
+  const mlg=document.getElementById('mob-legend');
+  Object.values(C).forEach(v=>{
+    const h='<div class="le"><div class="ld" style="background:'+v.h+'"></div>'+v.l+'</div>';
+    lg.innerHTML+=h;mlg.innerHTML+=h;
+  });
+  const nv='<div class="le"><div class="ld" style="background:'+U+'"></div>Not visited</div>';
+  lg.innerHTML+=nv;mlg.innerHTML+=nv;
 
   map.on('load',function(){
     map.addSource('streets',{type:'geojson',data:geojson,promoteId:'i'});
@@ -391,7 +434,8 @@ async function init(){
 
     map.addLayer({id:'streets',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':cExpr,'line-width':wExpr,'line-opacity':oExpr}});
     map.addLayer({id:'streets-hover',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],10,3,13,8,16,10],'line-opacity':['case',['boolean',['feature-state','hover'],false],0.8,0]}});
-    map.addLayer({id:'streets-highlight',type:'line',source:'streets',filter:['==',['get','i'],-1],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],10,2,13,6,16,8],'line-opacity':0.9}});
+    map.addLayer({id:'streets-highlight-glow',type:'line',source:'streets',filter:['==',['get','i'],-1],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#00e5a0','line-width':['interpolate',['linear'],['zoom'],10,4,13,10,16,14],'line-opacity':0.15}});
+    map.addLayer({id:'streets-highlight',type:'line',source:'streets',filter:['==',['get','i'],-1],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#00e5a0','line-width':['interpolate',['linear'],['zoom'],10,1,13,3,16,4],'line-opacity':0.7}});
     map.addLayer({id:'streets-hit',type:'line',source:'streets',paint:{'line-color':'rgba(0,0,0,0)','line-width':['interpolate',['linear'],['zoom'],10,8,13,16,16,20],'line-opacity':0}});
 
     for(const id of Object.keys(SD)){
@@ -425,6 +469,61 @@ async function init(){
     pb.style.width='100%';
     stats();renderList();
     document.getElementById('search').addEventListener('input',e=>renderList(e.target.value));
+
+    // Mobile search
+    const mobBtn=document.getElementById('mob-search-btn');
+    const mobBar=document.getElementById('mob-search');
+    const mobInput=document.getElementById('mob-search-input');
+    const mobRes=document.getElementById('mob-results');
+    let mobOpen=false;
+    function toggleMobSearch(){
+      mobOpen=!mobOpen;
+      mobBar.style.display=mobOpen?'block':'none';
+      mobRes.style.display=mobOpen?'block':'none';
+      if(mobOpen){mobInput.focus();renderMobList('')}
+      else{mobInput.value='';mobRes.innerHTML=''}
+    }
+    mobBtn.onclick=toggleMobSearch;
+    function renderMobList(q){
+      q=(q||'').toLowerCase();
+      mobRes.innerHTML='';
+      const sorted=[...NAMES].sort((a,b)=>{
+        const ap=(nameSeg[a]||[]).some(i=>SD[i])?0:1;
+        const bp=(nameSeg[b]||[]).some(i=>SD[i])?0:1;
+        return ap-bp||a.localeCompare(b);
+      });
+      const m=sorted.filter(n=>n.toLowerCase().includes(q)).slice(0,100);
+      const frag=document.createDocumentFragment();
+      m.forEach(name=>{
+        const idxs=nameSeg[name]||[];
+        const p=idxs.filter(i=>SD[i]).length;
+        const d=document.createElement('div');d.className='sr';
+        const fc=idxs.find(i=>SD[i]);
+        let dc=U;
+        if(fc!==undefined){
+          const val=SD[fc];const arr=Array.isArray(val)?val:[val];const unique=[...new Set(arr)];
+          if(unique.length>=2)dc=C['green'].h;
+          else if(unique.length===1&&C[unique[0]])dc=C[unique[0]].h;
+        }
+        d.innerHTML='<div class="sd" style="background:'+dc+'"></div><div class="sn">'+name+'</div><span class="sc">'+p+'/'+idxs.length+'</span>';
+        d.onclick=()=>{
+          if(!idxs.length)return;
+          highlightStreet(name);
+          const coords=[];
+          geojson.features.forEach(f=>{if(idxs.includes(f.properties.i))f.geometry.coordinates.forEach(c=>coords.push(c))});
+          if(coords.length){
+            const lons=coords.map(c=>c[0]),lats=coords.map(c=>c[1]);
+            map.fitBounds([[Math.min(...lons),Math.min(...lats)],[Math.max(...lons),Math.max(...lats)]],{padding:60,maxZoom:16});
+          }
+          toggleMobSearch();
+          setTimeout(()=>clearHL(),3000);
+        };
+        frag.appendChild(d);
+      });
+      mobRes.appendChild(frag);
+    }
+    mobInput.addEventListener('input',e=>renderMobList(e.target.value));
+
     setTimeout(()=>document.getElementById('ov').classList.add('hid'),300);startRealtimeSync();
   });
 }
