@@ -237,12 +237,21 @@ function isUserBanned(bans,k){
   if(b.type==='temp'&&b.until>Date.now())return true;
   return false;
 }
+function getBackupUrl(k){return FIREBASE_URL?FIREBASE_URL+'/bk_explorer/ban_backups/'+k+'.json':null}
 async function stripUserPaint(k){
+  // Backup this user's blocks before removing
+  const backup=[];
+  Object.keys(SD).forEach(id=>{
+    const val=SD[id];if(!val)return;
+    const arr=Array.isArray(val)?val:[val];
+    if(arr.includes(k))backup.push(id);
+  });
+  const url=getBackupUrl(k);
+  if(url)try{await fetch(url,{method:'PUT',body:JSON.stringify(backup)})}catch(e){}
   // Remove this user's color from all blocks
   let changed=false;
   Object.keys(SD).forEach(id=>{
-    const val=SD[id];
-    if(!val)return;
+    const val=SD[id];if(!val)return;
     const arr=Array.isArray(val)?val:[val];
     const filtered=arr.filter(c=>c!==k);
     if(filtered.length===arr.length)return;
@@ -254,6 +263,27 @@ async function stripUserPaint(k){
     if(map)applySegStyle(id);
   });
   if(changed){await doSave();stats();renderList(document.getElementById('search').value)}
+}
+async function restoreUserPaint(k){
+  const url=getBackupUrl(k);
+  if(!url)return;
+  try{
+    const r=await fetch(url);if(!r.ok)return;
+    const backup=await r.json();if(!backup||!backup.length)return;
+    let changed=false;
+    backup.forEach(id=>{
+      if(!SD[id]){SD[id]=[k];changed=true}
+      else{
+        const arr=Array.isArray(SD[id])?SD[id]:[SD[id]];
+        if(!arr.includes(k)){arr.push(k);SD[id]=arr;changed=true}
+      }
+      dirtyIds[id]=Date.now();
+      if(map)applySegStyle(id);
+    });
+    if(changed){await doSave();stats();renderList(document.getElementById('search').value)}
+    // Clean up backup
+    await fetch(url,{method:'DELETE'});
+  }catch(e){}
 }
 
 // Brooklyn neighborhood centers (lng,lat) — streets assigned to nearest center
@@ -818,7 +848,8 @@ async function init(){
             toast('Permanently banned '+C[user].l+' — paint removed');
           }else{
             delete bans[user];
-            toast('Unbanned '+C[user].l);
+            await restoreUserPaint(user);
+            toast('Unbanned '+C[user].l+' — paint restored');
           }
           await saveBans(bans);
           renderDevPanel();
