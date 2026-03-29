@@ -527,18 +527,31 @@ function applySegStyle(id){
   map.setFeatureState({source:'streets',id:parseInt(id)},{c:displayColor(id)});
 }
 
+const undoStack=[];
+const MAX_UNDO=50;
+function pushUndo(id,name,prev){
+  undoStack.push({id,name,prev:prev?JSON.parse(JSON.stringify(prev)):null});
+  if(undoStack.length>MAX_UNDO)undoStack.shift();
+}
+function doUndo(){
+  if(!undoStack.length){toast('Nothing to undo');return}
+  const {id,name,prev}=undoStack.pop();
+  if(prev===null)delete SD[id];
+  else SD[id]=prev;
+  dirtyIds[id]=Date.now();applySegStyle(id);dsv();stats();renderList(document.getElementById('search').value);
+  toast('Undo: '+name);
+}
 function clickSeg(id,name){
   if(ac===null){return}
   if(ac==='erase'){
-    if(SD[id]){delete SD[id];dirtyIds[id]=Date.now();applySegStyle(id);dsv();stats();renderList(document.getElementById('search').value);toast('Cleared: '+name)}
+    if(SD[id]){pushUndo(id,name,SD[id]);delete SD[id];dirtyIds[id]=Date.now();applySegStyle(id);dsv();stats();renderList(document.getElementById('search').value);toast('Cleared: '+name)}
   }else{
-    // Add this color to the array (or create new array)
+    pushUndo(id,name,SD[id]||null);
     if(!SD[id]){
       SD[id]=[ac];
     }else if(Array.isArray(SD[id])){
       if(!SD[id].includes(ac))SD[id].push(ac);
     }else{
-      // Migrate old string format
       if(SD[id]!==ac)SD[id]=[SD[id],ac];
       else SD[id]=[ac];
     }
@@ -580,6 +593,8 @@ async function init(){
   });
   const er=document.createElement('div');er.className='cb er';er.textContent='✕';er.title='Erase';
   er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac='erase'};cpk.appendChild(er);
+  const ub=document.createElement('div');ub.className='cb er';ub.textContent='↩';ub.title='Undo';ub.style.fontSize='16px';
+  ub.onclick=()=>doUndo();cpk.appendChild(ub);
 
   // Mobile color picker
   const mp=document.getElementById('mob-picker');
@@ -608,6 +623,8 @@ async function init(){
     mer.classList.add('on');ac='erase';
   };
   mp.appendChild(mer);
+  const mub=document.createElement('div');mub.className='cb er';mub.textContent='↩';mub.style.fontSize='16px';
+  mub.onclick=()=>doUndo();mp.appendChild(mub);
 
   const lg=document.getElementById('lg');
   const mlg=document.getElementById('mob-legend');
