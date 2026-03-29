@@ -50,7 +50,14 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .wrap{display:flex;flex:1;overflow:hidden}
 #map{flex:1;cursor:crosshair}
 .maplibregl-canvas{cursor:crosshair!important}
-.sb{width:300px;background:var(--sf);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sb{width:300px;background:var(--sf);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width 0.2s}
+.sb.mini{width:52px;overflow:visible}
+.sb.mini .sec,.sb.mini .sl,.sb.mini .leg{display:none}
+.sb.mini .sec:first-child{display:block;padding:8px 9px;border:none}
+.sb.mini .sec:first-child h2{display:none}
+.sb.mini .cp{flex-direction:column;gap:6px}
+.sb-toggle{position:absolute;top:8px;right:8px;background:var(--sf2);border:1px solid var(--bd);color:var(--dm);width:24px;height:24px;border-radius:5px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:1}
+.sb{position:relative}
 .sec{padding:14px;border-bottom:1px solid var(--bd)}
 .sec h2{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dm);margin-bottom:10px}
 .cp{display:flex;flex-wrap:wrap;gap:6px}
@@ -76,6 +83,18 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .li{display:flex;flex-wrap:wrap;gap:8px}
 .le{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dm)}
 .ld{width:7px;height:7px;border-radius:50%}
+.fb{display:flex;flex-wrap:wrap;gap:5px}
+.fbtn{padding:4px 10px;border-radius:5px;border:1px solid var(--bd);background:var(--sf2);color:var(--dm);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.fbtn:hover{border-color:var(--ac)}
+.fbtn.fon{border-color:#fff;color:var(--tx);background:var(--bd)}
+.nh-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}
+.nh-list::-webkit-scrollbar{width:4px}
+.nh-list::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+.nh-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dm)}
+.nh-name{width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.nh-bar{flex:1;height:6px;background:var(--sf2);border-radius:3px;overflow:hidden}
+.nh-fill{height:100%;background:var(--ac);border-radius:3px;transition:width 0.3s}
+.nh-pct{width:36px;text-align:right;font-family:'Space Mono',monospace;font-size:10px;flex-shrink:0}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--sf2);border:1px solid var(--ac);color:var(--tx);padding:10px 20px;border-radius:10px;font-size:13px;z-index:9999;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .ov{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;transition:opacity 0.4s}
@@ -148,8 +167,11 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 <div class="lb-bar"><div class="lb" id="lb"></div></div>
 <div class="wrap">
 <div id="map"></div>
-<div class="sb">
+<div class="sb" id="sb">
+  <button class="sb-toggle" id="sb-toggle">◀</button>
   <div class="sec"><h2>Paint Mode</h2><div class="cp" id="cpk"></div></div>
+  <div class="sec"><h2>Filter by Person</h2><div class="fb" id="fb"></div></div>
+  <div class="sec"><h2>Neighborhoods</h2><div class="nh-list" id="nh-list"></div></div>
   <div class="sec"><input type="text" class="si" id="search" placeholder="Search streets..." /></div>
   <div class="sl" id="slist"></div>
   <div class="leg"><h3>Legend</h3><div class="li" id="lg"></div></div>
@@ -172,7 +194,24 @@ const PLAYER_KEYS=['red','blue','yellow','orange','purple'];
 const COL_KEYS=['red','blue','yellow','orange','purple','green','white'];
 const colIdx=k=>COL_KEYS.indexOf(k)+1;
 const U='#4a4a6e',SK='bk_blk_v12';
-let map,geojson,nameSeg,SD={},ac='red',popup,hlName=null;
+let map,geojson,nameSeg,SD={},ac='red',popup,hlName=null,activeFilter=null;
+
+// Brooklyn neighborhood centers (lng,lat) — streets assigned to nearest center
+const HOODS={
+'Williamsburg':[-73.957,40.714],'Greenpoint':[-73.951,40.727],'Bushwick':[-73.921,40.694],
+'Bed-Stuy':[-73.941,40.683],'Crown Heights':[-73.946,40.669],'Park Slope':[-73.978,40.672],
+'Brooklyn Heights':[-73.993,40.696],'DUMBO':[-73.988,40.703],'Red Hook':[-73.999,40.675],
+'Sunset Park':[-73.993,40.646],'Bay Ridge':[-74.024,40.635],'Bensonhurst':[-73.993,40.602],
+'Borough Park':[-73.990,40.633],'Flatbush':[-73.962,40.643],'East Flatbush':[-73.930,40.643],
+'Brownsville':[-73.905,40.662],'East New York':[-73.882,40.666],'Canarsie':[-73.896,40.634],
+'Sheepshead Bay':[-73.944,40.590],'Brighton Beach':[-73.962,40.577],'Coney Island':[-73.984,40.575],
+'Prospect Heights':[-73.968,40.679],'Fort Greene':[-73.975,40.689],'Clinton Hill':[-73.965,40.689],
+'Cobble Hill':[-73.994,40.685],'Carroll Gardens':[-73.999,40.680],'Gowanus':[-73.984,40.676],
+'Ditmas Park':[-73.962,40.633],'Flatlands':[-73.929,40.619],'Marine Park':[-73.920,40.600],
+'Midwood':[-73.962,40.617],'Kensington':[-73.973,40.640],'Windsor Terrace':[-73.976,40.654],
+'Prospect Lefferts':[-73.953,40.658],'Downtown BK':[-73.984,40.693]
+};
+let nhoodMap={}; // featureId -> neighborhood name
 
 function dec(s){const b=atob(s);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return JSON.parse(pako.inflate(a,{to:'string'}))}
 
@@ -292,6 +331,34 @@ function stats(){
   const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
   lb.innerHTML=lbHtml;
   document.getElementById('mob-lb').innerHTML=lbHtml;
+  updateNhoods();
+}
+
+function updateNhoods(){
+  const el=document.getElementById('nh-list');
+  if(!el||!geojson)return;
+  const nhTotals={},nhVisited={};
+  geojson.features.forEach(f=>{
+    const nh=nhoodMap[f.properties.i];
+    if(!nh)return;
+    nhTotals[nh]=(nhTotals[nh]||0)+1;
+    const val=SD[f.properties.i];
+    if(val){
+      if(activeFilter){
+        const arr=Array.isArray(val)?val:[val];
+        if(arr.includes(activeFilter))nhVisited[nh]=(nhVisited[nh]||0)+1;
+      }else{
+        nhVisited[nh]=(nhVisited[nh]||0)+1;
+      }
+    }
+  });
+  const rows=Object.keys(HOODS).map(nh=>{
+    const total=nhTotals[nh]||0;
+    const visited=nhVisited[nh]||0;
+    const pct=total?((visited/total)*100):0;
+    return {name:nh,total,visited,pct};
+  }).filter(r=>r.total>0).sort((a,b)=>b.pct-a.pct);
+  el.innerHTML=rows.map(r=>'<div class="nh-row"><span class="nh-name">'+r.name+'</span><div class="nh-bar"><div class="nh-fill" style="width:'+r.pct.toFixed(1)+'%"></div></div><span class="nh-pct">'+r.pct.toFixed(1)+'%</span></div>').join('');
 }
 
 function highlightStreet(name){
@@ -462,9 +529,9 @@ async function init(){
       14,['case',['>',['coalesce',['feature-state','c'],0],0],4,2],
       17,['case',['>',['coalesce',['feature-state','c'],0],0],7,3]];
     const oExpr=['interpolate',['linear'],['zoom'],
-      10,['case',['>',['coalesce',['feature-state','c'],0],0],0.85,0.4],
-      13,['case',['>',['coalesce',['feature-state','c'],0],0],0.95,0.6],
-      16,['case',['>',['coalesce',['feature-state','c'],0],0],1,0.7]];
+      10,['case',['boolean',['feature-state','dim'],false],0.08,['>',['coalesce',['feature-state','c'],0],0],0.85,0.4],
+      13,['case',['boolean',['feature-state','dim'],false],0.1,['>',['coalesce',['feature-state','c'],0],0],0.95,0.6],
+      16,['case',['boolean',['feature-state','dim'],false],0.12,['>',['coalesce',['feature-state','c'],0],0],1,0.7]];
 
     map.addLayer({id:'streets',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':cExpr,'line-width':wExpr,'line-opacity':oExpr}});
     map.addLayer({id:'streets-hover-glow',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ff69b4','line-width':['interpolate',['linear'],['zoom'],10,4,13,10,16,14],'line-opacity':['case',['boolean',['feature-state','hover'],false],0.15,0]}});
@@ -512,7 +579,58 @@ async function init(){
     });
 
     pb.style.width='100%';
+
+    // Assign streets to neighborhoods by nearest center
+    const hoodNames=Object.keys(HOODS);
+    geojson.features.forEach(f=>{
+      const coords=f.geometry.coordinates;
+      const mid=coords[Math.floor(coords.length/2)];
+      let best=null,bestD=Infinity;
+      for(const nh of hoodNames){
+        const c=HOODS[nh];
+        const d=Math.pow(mid[0]-c[0],2)+Math.pow(mid[1]-c[1],2);
+        if(d<bestD){bestD=d;best=nh}
+      }
+      nhoodMap[f.properties.i]=best;
+    });
+
+    // Filter by person
+    const fb=document.getElementById('fb');
+    const allBtn=document.createElement('button');allBtn.className='fbtn fon';allBtn.textContent='All';
+    allBtn.onclick=()=>setFilter(null);
+    fb.appendChild(allBtn);
+    PLAYER_KEYS.forEach(k=>{
+      const btn=document.createElement('button');btn.className='fbtn';
+      btn.innerHTML='<span style="color:'+C[k].h+'">●</span> '+C[k].l;
+      btn.onclick=()=>setFilter(k);
+      fb.appendChild(btn);
+    });
+
+    function setFilter(k){
+      activeFilter=k;
+      fb.querySelectorAll('.fbtn').forEach((b,i)=>{
+        if(k===null&&i===0)b.classList.add('fon');
+        else if(k!==null&&i===PLAYER_KEYS.indexOf(k)+1)b.classList.add('fon');
+        else b.classList.remove('fon');
+      });
+      // Re-apply all feature states with filter
+      geojson.features.forEach(f=>{
+        const id=f.properties.i;
+        if(activeFilter){
+          const val=SD[id];
+          if(!val){map.setFeatureState({source:'streets',id},{c:0,dim:true});return}
+          const arr=Array.isArray(val)?val:[val];
+          if(arr.includes(activeFilter)){map.setFeatureState({source:'streets',id},{c:displayColor(id),dim:false})}
+          else{map.setFeatureState({source:'streets',id},{c:displayColor(id),dim:true})}
+        }else{
+          map.setFeatureState({source:'streets',id},{c:displayColor(id),dim:false});
+        }
+      });
+      updateNhoods();
+    }
+
     stats();renderList();
+    updateNhoods();
     document.getElementById('search').addEventListener('input',e=>renderList(e.target.value));
 
     // Mobile search
@@ -568,6 +686,10 @@ async function init(){
       mobRes.appendChild(frag);
     }
     mobInput.addEventListener('input',e=>renderMobList(e.target.value));
+
+    // Sidebar toggle
+    const sbEl=document.getElementById('sb'),sbTog=document.getElementById('sb-toggle');
+    sbTog.onclick=()=>{sbEl.classList.toggle('mini');sbTog.textContent=sbEl.classList.contains('mini')?'▶':'◀';map.resize()};
 
     setTimeout(()=>document.getElementById('ov').classList.add('hid'),300);startRealtimeSync();
   });
