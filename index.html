@@ -436,8 +436,8 @@ async function init(){
       16,['case',['>',['coalesce',['feature-state','c'],0],0],1,0.7]];
 
     map.addLayer({id:'streets',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':cExpr,'line-width':wExpr,'line-opacity':oExpr}});
-    map.addLayer({id:'streets-hover-glow',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#00e5a0','line-width':['interpolate',['linear'],['zoom'],10,4,13,10,16,14],'line-opacity':['case',['boolean',['feature-state','hover'],false],0.15,0]}});
-    map.addLayer({id:'streets-hover',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#00e5a0','line-width':['interpolate',['linear'],['zoom'],10,1,13,3,16,4],'line-opacity':['case',['boolean',['feature-state','hover'],false],0.7,0]}});
+    map.addLayer({id:'streets-hover-glow',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#c0c0d0','line-width':['interpolate',['linear'],['zoom'],10,4,13,10,16,14],'line-opacity':['case',['boolean',['feature-state','hover'],false],0.12,0]}});
+    map.addLayer({id:'streets-hover',type:'line',source:'streets',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#e8e8f0','line-width':['interpolate',['linear'],['zoom'],10,1,13,3,16,4],'line-opacity':['case',['boolean',['feature-state','hover'],false],0.5,0]}});
     map.addLayer({id:'streets-highlight-glow',type:'line',source:'streets',filter:['==',['get','i'],-1],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#00e5a0','line-width':['interpolate',['linear'],['zoom'],10,4,13,10,16,14],'line-opacity':0.15}});
     map.addLayer({id:'streets-highlight',type:'line',source:'streets',filter:['==',['get','i'],-1],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#00e5a0','line-width':['interpolate',['linear'],['zoom'],10,1,13,3,16,4],'line-opacity':0.7}});
     map.addLayer({id:'streets-hit',type:'line',source:'streets',paint:{'line-color':'rgba(0,0,0,0)','line-width':['interpolate',['linear'],['zoom'],10,8,13,16,16,20],'line-opacity':0}});
