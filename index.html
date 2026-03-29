@@ -371,28 +371,38 @@ function highlightStreet(name){
 }
 function clearHL(){if(hlName){hlName=null;map.setFilter('streets-highlight',['==',['get','i'],-1]);map.setFilter('streets-highlight-glow',['==',['get','i'],-1])}}
 
+function segMatchesFilter(i){
+  const val=SD[i];if(!val)return false;
+  if(!activeFilter)return true;
+  const arr=Array.isArray(val)?val:[val];
+  return arr.includes(activeFilter);
+}
 function renderList(q){
   q=(q||'').toLowerCase();
   const el=document.getElementById('slist');el.innerHTML='';
   const sorted=[...NAMES].sort((a,b)=>{
-    const ap=(nameSeg[a]||[]).some(i=>SD[i])?0:1;
-    const bp=(nameSeg[b]||[]).some(i=>SD[i])?0:1;
+    const ap=(nameSeg[a]||[]).some(i=>segMatchesFilter(i))?0:1;
+    const bp=(nameSeg[b]||[]).some(i=>segMatchesFilter(i))?0:1;
     return ap-bp||a.localeCompare(b);
   });
   const m=sorted.filter(n=>n.toLowerCase().includes(q)).slice(0,200);
   const frag=document.createDocumentFragment();
   m.forEach(name=>{
     const idxs=nameSeg[name]||[];
-    const p=idxs.filter(i=>SD[i]).length;
+    const p=idxs.filter(i=>segMatchesFilter(i)).length;
     const d=document.createElement('div');d.className='sr';
-    const fc=idxs.find(i=>SD[i]);
     let dc=U;
-    if(fc!==undefined){
-      const val=SD[fc];
-      const arr=Array.isArray(val)?val:[val];
-      const unique=[...new Set(arr)];
-      if(unique.length>=2)dc=C['green'].h;
-      else if(unique.length===1&&C[unique[0]])dc=C[unique[0]].h;
+    if(activeFilter){
+      if(p>0)dc=C[activeFilter].h;
+    }else{
+      const fc=idxs.find(i=>SD[i]);
+      if(fc!==undefined){
+        const val=SD[fc];
+        const arr=Array.isArray(val)?val:[val];
+        const unique=[...new Set(arr)];
+        if(unique.length>=2)dc=C['green'].h;
+        else if(unique.length===1&&C[unique[0]])dc=C[unique[0]].h;
+      }
     }
     d.innerHTML='<div class="sd" style="background:'+dc+'"></div><div class="sn">'+name+'</div><span class="sc">'+p+'/'+idxs.length+'</span>';
     d.onmouseenter=()=>highlightStreet(name);
@@ -629,6 +639,7 @@ async function init(){
         }
       });
       updateNhoods();
+      renderList(document.getElementById('search').value);
     }
 
     stats();renderList();
