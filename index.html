@@ -737,20 +737,37 @@ async function init(){
     const mobLbBtn=document.getElementById('mob-lb-btn');
     const mobLbEl=document.getElementById('mob-lb');
     const mobLbOv=document.getElementById('mob-lb-overlay');
-    function toggleMobLb(){const on=mobLbEl.classList.toggle('show');mobLbOv.style.display=on?'block':'none'}
+    function closeMobLb(){mobLbEl.classList.remove('show');mobLbOv.style.display='none'}
+    function toggleMobLb(){
+      if(mobOpen)closeMobSearch();
+      const on=mobLbEl.classList.toggle('show');
+      mobLbOv.style.display=on?'block':'none';
+    }
     mobLbBtn.onclick=toggleMobLb;
-    mobLbOv.onclick=toggleMobLb;
+    mobLbOv.onclick=closeMobLb;
 
     // Mobile search
     const mobBtn=document.getElementById('mob-search-btn');
     const mobBar=document.getElementById('mob-search');
     const mobInput=document.getElementById('mob-search-input');
     const mobRes=document.getElementById('mob-results');
+    const mobSearchOv=document.createElement('div');
+    mobSearchOv.style.cssText='display:none;position:fixed;inset:0;z-index:999';
+    document.body.appendChild(mobSearchOv);
     let mobOpen=false;
+    function closeMobSearch(){
+      mobOpen=false;
+      mobBar.style.display='none';
+      mobRes.style.display='none';
+      mobSearchOv.style.display='none';
+      mobInput.value='';mobRes.innerHTML='';
+    }
     function toggleMobSearch(){
+      closeMobLb();
       mobOpen=!mobOpen;
       mobBar.style.display=mobOpen?'block':'none';
       mobRes.style.display=mobOpen?'block':'none';
+      mobSearchOv.style.display=mobOpen?'block':'none';
       if(mobOpen){mobInput.focus();renderMobList('')}
       else{mobInput.value='';mobRes.innerHTML=''}
     }
