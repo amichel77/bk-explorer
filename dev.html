@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BK Explorer</title>
+<title>BK Explorer DEV</title>
 <script>window._loadErrors=[];</script>
 <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js" onerror="window._loadErrors.push('maplibre')"></script>
 <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet" />
@@ -170,13 +170,13 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 <body>
 <div class="ov" id="ov"><div class="sp"></div><div class="lt" id="lt">Loading...</div><div class="pbg"><div class="pf" id="pb"></div></div></div>
 <header>
-<div class="logo"><div class="logo-icon">🗺</div><h1>BK<span>.</span>EXPLORER</h1><button class="mob-search-btn" id="mob-search-btn">🔍</button></div>
+<div class="logo"><div class="logo-icon" style="background:#ef4444">🛠</div><h1>BK<span>.</span>EXPLORER <span style="color:#ef4444;font-size:11px">DEV</span></h1><button class="mob-search-btn" id="mob-search-btn">🔍</button></div>
 <div class="stats">
   <div class="stat"><strong id="vc">0</strong><span>blocks</span></div>
   <div class="stat"><strong id="tc">0</strong><span>total</span></div>
   <div class="stat"><strong id="pc">0%</strong><span>done</span></div>
   <div id="save-status" style="opacity:0"></div>
-  <button class="dev-btn" id="dev-btn">DEV</button>
+  <a href="index.html" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7">← PROD</a>
 </div>
 </header>
 <div class="lb-bar"><div class="lb" id="lb"></div></div>
@@ -209,7 +209,7 @@ const C={red:{h:'#ef4444',l:'Alex'},blue:{h:'#3b82f6',l:'Zack'},yellow:{h:'#facc
 const PLAYER_KEYS=['red','blue','yellow','orange','purple'];
 const COL_KEYS=['red','blue','yellow','orange','purple','green','white'];
 const colIdx=k=>COL_KEYS.indexOf(k)+1;
-const U='#4a4a6e',SK='bk_blk_v12';
+const U='#4a4a6e',SK='bk_blk_v12_dev';
 let map,geojson,nameSeg,SD={},ac='red',popup,hlName=null,activeFilter=null,devMode=false;
 const DEV_PASS='7777';
 const BAN_PATH='/bk_explorer/bans';
@@ -303,7 +303,7 @@ function dec(s){const b=atob(s);const a=new Uint8Array(b.length);for(let i=0;i<b
 // 1. Create project -> Realtime Database -> Start in test mode  
 // 2. Paste your database URL below
 const FIREBASE_URL = "https://bk-explorer-5e170-default-rtdb.firebaseio.com";
-const DB_PATH = "/bk_explorer/blocks";
+const DB_PATH = "/bk_explorer/dev_blocks";
 
 function getRemoteUrl() { return FIREBASE_URL ? FIREBASE_URL + DB_PATH + ".json" : null; }
 
@@ -799,6 +799,7 @@ async function init(){
     };
     async function renderDevPanel(){
       const bans=await getBans();
+      const bans=await getBans();
       let html='<h3>Dev Mode</h3>';
       html+='<div style="margin-bottom:8px;font-size:10px;color:var(--dm)">User Bans</div>';
       PLAYER_KEYS.forEach(k=>{
@@ -811,7 +812,6 @@ async function init(){
         }
         html+='<div class="dev-row"><span style="color:'+C[k].h+'">'+C[k].l+'</span><button class="'+cls+'" data-user="'+k+'" data-status="'+status+'">'+label+'</button></div>';
       });
-      html+='<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--bd)"><a href="dev.html" style="color:var(--ac);font-size:11px;font-family:Space Mono,monospace;text-decoration:none">→ Open Dev Environment</a></div>';
       devPanel.innerHTML=html;
       devPanel.querySelectorAll('.dev-toggle').forEach(btn=>{
         btn.onclick=async()=>{
