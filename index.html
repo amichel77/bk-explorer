@@ -216,12 +216,45 @@ const colIdx=k=>COL_KEYS.indexOf(k)+1;
 const U='#4a4a6e',SK='bk_blk_v12';
 let map,geojson,nameSeg,SD={},ac='red',popup,hlName=null,activeFilter=null,devMode=false;
 const DEV_PASS='7777';
-const BAN_KEY='bk_bans';
+const BAN_PATH='/bk_explorer/bans';
 const FLAGS_KEY='bk_flags';
-function getBans(){try{return JSON.parse(localStorage.getItem(BAN_KEY)||'{}')}catch(e){return {}}}
-function saveBans(b){localStorage.setItem(BAN_KEY,JSON.stringify(b))}
+function getBanUrl(){return FIREBASE_URL?FIREBASE_URL+BAN_PATH+'.json':null}
+async function getBans(){
+  const url=getBanUrl();
+  if(url){try{const r=await fetch(url);if(r.ok){const d=await r.json();return d||{}}}catch(e){}}
+  try{return JSON.parse(localStorage.getItem('bk_bans')||'{}')}catch(e){return {}}
+}
+async function saveBans(b){
+  const url=getBanUrl();
+  if(url){try{await fetch(url,{method:'PUT',body:JSON.stringify(b)})}catch(e){}}
+  localStorage.setItem('bk_bans',JSON.stringify(b));
+}
 function getFlags(){try{return JSON.parse(localStorage.getItem(FLAGS_KEY)||'{}')}catch(e){return {}}}
 function saveFlags(f){localStorage.setItem(FLAGS_KEY,JSON.stringify(f))}
+function isUserBanned(bans,k){
+  const b=bans[k];if(!b)return false;
+  if(b.type==='banned')return true;
+  if(b.type==='temp'&&b.until>Date.now())return true;
+  return false;
+}
+async function stripUserPaint(k){
+  // Remove this user's color from all blocks
+  let changed=false;
+  Object.keys(SD).forEach(id=>{
+    const val=SD[id];
+    if(!val)return;
+    const arr=Array.isArray(val)?val:[val];
+    const filtered=arr.filter(c=>c!==k);
+    if(filtered.length===arr.length)return;
+    changed=true;
+    if(filtered.length===0)delete SD[id];
+    else if(filtered.length===1)SD[id]=filtered;
+    else SD[id]=filtered;
+    dirtyIds[id]=Date.now();
+    if(map)applySegStyle(id);
+  });
+  if(changed){await doSave();stats();renderList(document.getElementById('search').value)}
+}
 
 // Brooklyn neighborhood centers (lng,lat) — streets assigned to nearest center
 const HOODS={
@@ -741,16 +774,20 @@ async function init(){
       devPanel.classList.toggle('open');
       if(devPanel.classList.contains('open'))renderDevPanel();
     };
-    function renderDevPanel(){
-      const bans=getBans();
+    async function renderDevPanel(){
+      const bans=await getBans();
       const flags=getFlags();
       let html='<h3>Dev Mode</h3>';
       html+='<div style="margin-bottom:8px;font-size:10px;color:var(--dm)">User Bans</div>';
       PLAYER_KEYS.forEach(k=>{
-        const status=bans[k]||'active';
-        const btnClass=status==='banned'?'dev-toggle banned':status==='temp'?'dev-toggle temp':'dev-toggle';
-        const btnText=status==='banned'?'BANNED':status==='temp'?'TEMP BAN':'ACTIVE';
-        html+='<div class="dev-row"><span style="color:'+C[k].h+'">'+C[k].l+'</span><button class="'+btnClass+'" data-user="'+k+'">'+btnText+'</button></div>';
+        const b=bans[k];
+        let status='active',label='ACTIVE',cls='dev-toggle';
+        if(b&&b.type==='banned'){status='banned';label='BANNED';cls='dev-toggle banned'}
+        else if(b&&b.type==='temp'){
+          if(b.until>Date.now()){const hrs=Math.round((b.until-Date.now())/3600000);status='temp';label='TEMP ('+hrs+'h)';cls='dev-toggle temp'}
+          else{status='expired'}
+        }
+        html+='<div class="dev-row"><span style="color:'+C[k].h+'">'+C[k].l+'</span><button class="'+cls+'" data-user="'+k+'" data-status="'+status+'">'+label+'</button></div>';
       });
       html+='<div class="dev-section"><h4>Feature Flags</h4>';
       const featureList=[
@@ -766,17 +803,24 @@ async function init(){
       });
       html+='</div>';
       devPanel.innerHTML=html;
-      // Ban button clicks
+      // Ban button clicks — cycle: active -> temp (1 day) -> permanent -> unban
       devPanel.querySelectorAll('.dev-toggle').forEach(btn=>{
-        btn.onclick=()=>{
+        btn.onclick=async()=>{
           const user=btn.dataset.user;
-          const bans=getBans();
-          const cur=bans[user]||'active';
-          if(cur==='active')bans[user]='temp';
-          else if(cur==='temp')bans[user]='banned';
-          else delete bans[user];
-          saveBans(bans);
-          applyBans();
+          const status=btn.dataset.status;
+          const bans=await getBans();
+          if(status==='active'||status==='expired'){
+            bans[user]={type:'temp',until:Date.now()+86400000};
+            toast('Temp banned '+C[user].l+' for 24h');
+          }else if(status==='temp'){
+            bans[user]={type:'banned'};
+            await stripUserPaint(user);
+            toast('Permanently banned '+C[user].l+' — paint removed');
+          }else{
+            delete bans[user];
+            toast('Unbanned '+C[user].l);
+          }
+          await saveBans(bans);
           renderDevPanel();
         };
       });
@@ -789,29 +833,13 @@ async function init(){
         };
       });
     }
-    function applyBans(){
-      const bans=getBans();
-      // Remove banned users' blocks from display
-      geojson.features.forEach(f=>{
-        const id=f.properties.i;
-        const val=SD[id];
-        if(!val)return;
-        const arr=Array.isArray(val)?val:[val];
-        const filtered=arr.filter(k=>!bans[k]||bans[k]==='active');
-        if(filtered.length===0)map.setFeatureState({source:'streets',id},{c:0});
-        else{
-          // Temporarily override display
-          const unique=[...new Set(filtered)];
-          const playerCount=unique.filter(k=>PLAYER_KEYS.includes(k)).length;
-          let ci;
-          if(playerCount>=5)ci=colIdx('white');
-          else if(unique.length>=2)ci=colIdx('green');
-          else ci=colIdx(unique[0]);
-          map.setFeatureState({source:'streets',id},{c:ci});
-        }
-      });
-    }
-    applyBans();
+    // Check bans on paint — prevent banned users from painting
+    const origClickSeg=clickSeg;
+    clickSeg=async function(id,name){
+      const bans=await getBans();
+      if(ac&&ac!=='erase'&&isUserBanned(bans,ac)){toast(C[ac].l+' is banned!');return}
+      origClickSeg(id,name);
+    };
 
     setTimeout(()=>document.getElementById('ov').classList.add('hid'),300);startRealtimeSync();
   });
