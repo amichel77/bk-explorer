@@ -592,10 +592,12 @@ async function init(){
     const b=document.createElement('div');b.className='cb'+(k===ac?' on':'');b.style.background=v.h;b.title=v.l;
     b.onclick=()=>{if(ac===k){cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));ac=null}else{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));b.classList.add('on');ac=k}};cpk.appendChild(b);
   });
+  const toolRow=document.createElement('div');toolRow.style.cssText='display:flex;gap:6px;margin-top:6px';
   const er=document.createElement('div');er.className='cb er';er.textContent='✕';er.title='Erase';er.style.width='28px';er.style.height='28px';er.style.fontSize='12px';
-  er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac='erase'};cpk.appendChild(er);
+  er.onclick=()=>{cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));er.classList.add('on');ac='erase'};toolRow.appendChild(er);
   const ub=document.createElement('div');ub.className='cb er';ub.textContent='↩';ub.title='Undo';ub.style.fontSize='14px';ub.style.width='28px';ub.style.height='28px';
-  ub.onclick=()=>doUndo();cpk.appendChild(ub);
+  ub.onclick=()=>doUndo();toolRow.appendChild(ub);
+  cpk.parentElement.appendChild(toolRow);
 
   // Mobile color picker
   const mp=document.getElementById('mob-picker');
