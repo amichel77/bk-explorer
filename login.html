@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BK Explorer — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--sf:#14141f;--sf2:#1e1e2e;--bd:#2a2a3e;--tx:#e8e8f0;--dm:#8888a0;--ac:#00e5a0}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--tx);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Grid / map pattern background */
+.grid-bg{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+}
+.grid-bg::before{
+  content:'';
+  position:absolute;
+  inset:-10%;
+  background-image:
+    linear-gradient(rgba(42,42,62,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42,42,62,0.3) 1px, transparent 1px);
+  background-size:48px 48px;
+  animation:gridDrift 20s linear infinite;
+}
+.grid-bg::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 50% 40%, transparent 0%, var(--bg) 70%);
+}
+@keyframes gridDrift{
+  0%{transform:translate(0,0)}
+  100%{transform:translate(48px,48px)}
+}
+
+/* Accent glow behind content */
+.glow{
+  position:fixed;
+  width:600px;
+  height:600px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  z-index:0;
+  pointer-events:none;
+  animation:glowPulse 4s ease-in-out infinite alternate;
+}
+@keyframes glowPulse{
+  0%{opacity:0.6;transform:translate(-50%,-50%) scale(0.95)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}
+}
+
+/* Floating street fragments */
+.street-lines{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+.street-line{
+  position:absolute;
+  height:2px;
+  background:linear-gradient(90deg, transparent, rgba(0,229,160,0.12), transparent);
+  border-radius:1px;
+  animation:streetFloat linear infinite;
+}
+@keyframes streetFloat{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(calc(100vw + 100%))}
+}
+
+/* Main card */
+.login-container{
+  position:relative;
+  z-index:1;
+  width:100%;
+  max-width:460px;
+  padding:20px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.card{
+  background:var(--sf);
+  border:1px solid var(--bd);
+  border-radius:16px;
+  padding:48px 40px 40px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.4), 0 0 80px rgba(0,229,160,0.03);
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg, transparent, var(--ac), transparent);
+  opacity:0.6;
+}
+
+/* Logo */
+.logo{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:32px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+}
+.logo-icon{
+  width:40px;
+  height:40px;
+  background:var(--ac);
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.logo h1{
+  font-family:'Space Mono',monospace;
+  font-size:17px;
+  font-weight:700;
+  letter-spacing:0.5px;
+}
+.logo h1 span{
+  color:var(--ac);
+}
+
+/* Hero text */
+.hero{
+  margin-bottom:10px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s both;
+}
+.hero h2{
+  font-family:'Space Mono',monospace;
+  font-size:28px;
+  font-weight:700;
+  line-height:1.25;
+  letter-spacing:-0.5px;
+  margin-bottom:0;
+}
+.hero h2 .accent{
+  color:var(--ac);
+}
+
+.tagline{
+  color:var(--dm);
+  font-size:15px;
+  line-height:1.5;
+  margin-bottom:36px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+}
+
+/* Form */
+.form{
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s both;
+}
+.field-row{
+  display:flex;
+  gap:12px;
+  margin-bottom:16px;
+}
+.field{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.field label{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:1.2px;
+  color:var(--dm);
+}
+.field input{
+  width:100%;
+  padding:12px 14px;
+  background:var(--sf2);
+  border:1px solid var(--bd);
+  border-radius:9px;
+  color:var(--tx);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.field input:focus{
+  border-color:var(--ac);
+  box-shadow:0 0 0 3px rgba(0,229,160,0.1);
+}
+.field input::placeholder{
+  color:var(--dm);
+  opacity:0.5;
+}
+
+.submit-btn{
+  width:100%;
+  padding:14px;
+  background:var(--ac);
+  color:var(--bg);
+  border:none;
+  border-radius:9px;
+  font-family:'Space Mono',monospace;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  cursor:pointer;
+  transition:all 0.2s;
+  margin-top:8px;
+  position:relative;
+  overflow:hidden;
+}
+.submit-btn:hover{
+  background:#00ffb2;
+  transform:translateY(-1px);
+  box-shadow:0 4px 20px rgba(0,229,160,0.3);
+}
+.submit-btn:active{
+  transform:translateY(0);
+  box-shadow:none;
+}
+.submit-btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
+}
+
+/* Error */
+.error-msg{
+  margin-top:16px;
+  padding:12px 14px;
+  background:rgba(239,68,68,0.08);
+  border:1px solid rgba(239,68,68,0.25);
+  border-radius:9px;
+  color:#f87171;
+  font-size:13px;
+  text-align:center;
+  display:none;
+  animation:shake 0.4s ease;
+}
+.error-msg.show{
+  display:block;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+
+/* Footer */
+.footer{
+  text-align:center;
+  margin-top:28px;
+  color:var(--dm);
+  font-size:12px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+}
+.footer .dot{
+  display:inline-block;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:var(--ac);
+  margin:0 8px;
+  vertical-align:middle;
+  opacity:0.5;
+}
+
+/* Members preview */
+.members{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-top:16px;
+  animation:fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.6s both;
+}
+.member-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  opacity:0.4;
+  transition:opacity 0.3s, transform 0.3s;
+}
+.member-dot:nth-child(1){background:#ff6b6b}
+.member-dot:nth-child(2){background:#ffd93d}
+.member-dot:nth-child(3){background:#6bcb77}
+.member-dot:nth-child(4){background:#4d96ff}
+.member-dot:nth-child(5){background:#9b59b6}
+
+/* Mobile */
+@media(max-width:520px){
+  .card{
+    padding:36px 24px 32px;
+    border-radius:12px;
+  }
+  .hero h2{
+    font-size:22px;
+  }
+  .tagline{
+    font-size:14px;
+    margin-bottom:28px;
+  }
+  .field-row{
+    flex-direction:column;
+    gap:12px;
+  }
+  .logo h1{
+    font-size:15px;
+  }
+  .logo-icon{
+    width:34px;
+    height:34px;
+    font-size:17px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="glow"></div>
+<div class="street-lines" id="streetLines"></div>
+
+<div class="login-container">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">&#9781;</div>
+      <h1>BK<span>.EXPLORER</span></h1>
+    </div>
+
+    <div class="hero">
+      <h2>Welcome to<br><span class="accent">BK.EXPLORER</span></h2>
+    </div>
+
+    <p class="tagline">Explore every street in Brooklyn with your crew.</p>
+
+    <form class="form" id="loginForm" autocomplete="off">
+      <div class="field-row">
+        <div class="field">
+          <label for="firstName">First Name</label>
+          <input type="text" id="firstName" placeholder="Enter first name" required>
+        </div>
+        <div class="field">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" placeholder="Enter last name" required>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn" id="submitBtn">ENTER EXPLORER</button>
+      <div class="error-msg" id="errorMsg">
+        Access denied. You are not part of this crew.
+      </div>
+    </form>
+
+    <div class="footer">
+      <span>5 explorers</span>
+      <span class="dot"></span>
+      <span>Brooklyn, NY</span>
+    </div>
+    <div class="members">
+      <div class="member-dot"></div>
+      <div class="member-dot"></div>
+      <div class="member-dot"></div>
+      <div class="member-dot"></div>
+      <div class="member-dot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Generate floating street lines
+  var container = document.getElementById('streetLines');
+  for(var i = 0; i < 8; i++){
+    var line = document.createElement('div');
+    line.className = 'street-line';
+    var w = 80 + Math.random() * 200;
+    var top = 10 + Math.random() * 80;
+    var dur = 12 + Math.random() * 18;
+    var delay = Math.random() * -20;
+    line.style.width = w + 'px';
+    line.style.top = top + '%';
+    line.style.left = '0';
+    line.style.animationDuration = dur + 's';
+    line.style.animationDelay = delay + 's';
+    container.appendChild(line);
+  }
+
+  // Allowed users
+  var ALLOWED = [
+    'alexander michel',
+    'dominick kraus',
+    'zachary delorge',
+    'oliver cohen',
+    'weston dalling'
+  ];
+
+  var form = document.getElementById('loginForm');
+  var firstInput = document.getElementById('firstName');
+  var lastInput = document.getElementById('lastName');
+  var errorMsg = document.getElementById('errorMsg');
+  var submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    errorMsg.classList.remove('show');
+
+    var first = firstInput.value.trim();
+    var last = lastInput.value.trim();
+    if(!first || !last) return;
+
+    var fullName = (first + ' ' + last).toLowerCase();
+
+    if(ALLOWED.indexOf(fullName) !== -1){
+      // Capitalize properly for storage
+      var stored = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase()
+        + ' '
+        + last.charAt(0).toUpperCase() + last.slice(1).toLowerCase();
+
+      sessionStorage.setItem('bk_user', stored);
+
+      // Success animation
+      submitBtn.textContent = 'ENTERING...';
+      submitBtn.disabled = true;
+
+      // Brief delay for visual feedback then redirect
+      setTimeout(function(){
+        window.location.href = 'index.html';
+      }, 600);
+    } else {
+      errorMsg.classList.add('show');
+      // Highlight inputs briefly
+      firstInput.style.borderColor = '#ef4444';
+      lastInput.style.borderColor = '#ef4444';
+      setTimeout(function(){
+        firstInput.style.borderColor = '';
+        lastInput.style.borderColor = '';
+      }, 1500);
+    }
+  });
+
+  // Clear error on new input
+  firstInput.addEventListener('input', function(){
+    errorMsg.classList.remove('show');
+  });
+  lastInput.addEventListener('input', function(){
+    errorMsg.classList.remove('show');
+  });
+})();
+</script>
+</body>
+</html>
