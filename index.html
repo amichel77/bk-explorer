@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BK Explorer</title>
-<script>if(!sessionStorage.getItem('bk_user'))window.location.href='login.html';</script>
+<script>(function(){var u=localStorage.getItem('bk_user'),t=localStorage.getItem('bk_user_time');if(!u||!t||Date.now()-parseInt(t)>604800000){localStorage.removeItem('bk_user');localStorage.removeItem('bk_user_time');window.location.href='login.html'}})()</script>
 <script>window._loadErrors=[];</script>
 <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js" onerror="window._loadErrors.push('maplibre')"></script>
 <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet" />

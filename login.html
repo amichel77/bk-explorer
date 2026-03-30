@@ -308,11 +308,11 @@ body{
   opacity:0.4;
   transition:opacity 0.3s, transform 0.3s;
 }
-.member-dot:nth-child(1){background:#ff6b6b}
-.member-dot:nth-child(2){background:#ffd93d}
-.member-dot:nth-child(3){background:#6bcb77}
-.member-dot:nth-child(4){background:#4d96ff}
-.member-dot:nth-child(5){background:#9b59b6}
+.member-dot:nth-child(1){background:#ef4444}
+.member-dot:nth-child(2){background:#f59e0b}
+.member-dot:nth-child(3){background:#facc15}
+.member-dot:nth-child(4){background:#3b82f6}
+.member-dot:nth-child(5){background:#8b5cf6}
 
 /* Mobile */
 @media(max-width:520px){
@@ -395,6 +395,10 @@ body{
 
 <script>
 (function(){
+  // Skip login if already authenticated within 7 days
+  var u=localStorage.getItem('bk_user'),t=localStorage.getItem('bk_user_time');
+  if(u&&t&&Date.now()-parseInt(t)<=604800000){window.location.href='index.html';return}
+
   // Generate floating street lines
   var container = document.getElementById('streetLines');
   for(var i = 0; i < 8; i++){
@@ -443,7 +447,8 @@ body{
         + ' '
         + last.charAt(0).toUpperCase() + last.slice(1).toLowerCase();
 
-      sessionStorage.setItem('bk_user', stored);
+      localStorage.setItem('bk_user', stored);
+      localStorage.setItem('bk_user_time', Date.now().toString());
 
       // Success animation
       submitBtn.textContent = 'ENTERING...';
