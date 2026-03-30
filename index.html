@@ -838,13 +838,8 @@ async function init(){
     const devBtn=document.getElementById('dev-btn');
     const devPanel=document.getElementById('dev-panel');
     devBtn.onclick=()=>{
-      if(!devMode){
-        const pw=prompt('Dev password:');
-        if(pw!==DEV_PASS)return;
-        devMode=true;devBtn.style.opacity='1';devBtn.style.color='var(--ac)';
-      }
-      devPanel.classList.toggle('open');
-      if(devPanel.classList.contains('open'))renderDevPanel();
+      const pw=prompt('Dev password:');
+      if(pw===DEV_PASS)window.location.href='dev.html';
     };
     async function renderDevPanel(){
       const bans=await getBans();
