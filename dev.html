@@ -838,7 +838,7 @@ async function init(){
     const devPanel=document.getElementById('dev-panel');
     async function renderDevPanel(){
       const bans=await getBans();
-      let html='<h3>Dev Mode</h3>';
+      let html='';
       PLAYER_KEYS.forEach(k=>{
         const b=bans[k];
         let status='active',label='ACTIVE',cls='dev-toggle';
