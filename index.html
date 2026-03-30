@@ -134,10 +134,10 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   display:none;
   position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
   background:var(--sf);border:1px solid var(--bd);border-radius:12px;
-  padding:8px 12px;gap:8px;z-index:1000;align-items:center;
+  padding:6px 10px;gap:5px;z-index:1000;align-items:center;
   box-shadow:0 4px 20px rgba(0,0,0,0.5);
 }
-.mob-picker .cb{width:30px;height:30px;border-radius:6px}
+.mob-picker .cb{width:26px;height:26px;border-radius:5px}
 .mob-legend{
   display:none;
   position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
@@ -617,14 +617,14 @@ async function init(){
     };
     mp.appendChild(b);
   });
-  const mer=document.createElement('div');mer.className='cb er';mer.textContent='✕';
+  const mer=document.createElement('div');mer.className='cb er';mer.textContent='✕';mer.style.width='22px';mer.style.height='22px';mer.style.fontSize='10px';
   mer.onclick=()=>{
     mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
     cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
     mer.classList.add('on');ac='erase';
   };
   mp.appendChild(mer);
-  const mub=document.createElement('div');mub.className='cb er';mub.textContent='↩';mub.style.fontSize='13px';mub.style.width='24px';mub.style.height='24px';
+  const mub=document.createElement('div');mub.className='cb er';mub.textContent='↩';mub.style.fontSize='11px';mub.style.width='22px';mub.style.height='22px';
   mub.onclick=()=>doUndo();mp.appendChild(mub);
 
   const lg=document.getElementById('lg');
