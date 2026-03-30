@@ -617,14 +617,14 @@ async function init(){
     };
     mp.appendChild(b);
   });
-  const mer=document.createElement('div');mer.className='cb er';mer.textContent='✕';mer.style.width='22px';mer.style.height='22px';mer.style.fontSize='10px';
+  const mer=document.createElement('div');mer.className='cb er';mer.textContent='✕';mer.style.cssText='width:18px!important;height:18px!important;font-size:9px;align-self:flex-end';
   mer.onclick=()=>{
     mp.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
     cpk.querySelectorAll('.cb').forEach(x=>x.classList.remove('on'));
     mer.classList.add('on');ac='erase';
   };
   mp.appendChild(mer);
-  const mub=document.createElement('div');mub.className='cb er';mub.textContent='↩';mub.style.fontSize='11px';mub.style.width='22px';mub.style.height='22px';
+  const mub=document.createElement('div');mub.className='cb er';mub.textContent='↩';mub.style.cssText='width:18px!important;height:18px!important;font-size:10px;align-self:flex-end';
   mub.onclick=()=>doUndo();mp.appendChild(mub);
 
   const lg=document.getElementById('lg');
