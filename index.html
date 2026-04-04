@@ -44,7 +44,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .logo-icon{width:32px;height:32px;background:var(--ac);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px}
 .logo h1{font-family:'Space Mono',monospace;font-size:15px}
 .logo h1 span{color:var(--ac)}
-.stats{display:flex;align-items:center;gap:16px;font-size:12px;flex:1;justify-content:space-around}
+.stats{display:flex;align-items:center;gap:16px;font-size:12px}
 .stat{display:flex;align-items:center;gap:5px;color:var(--dm)}
 .stat strong{color:var(--ac);font-family:'Space Mono',monospace;font-size:14px}
 #save-status{transition:opacity 0.3s;font-size:12px}
@@ -177,7 +177,6 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .lb-tog-opt.lb-tog-on{color:var(--ac);background:var(--sf2)}
 .mob-lb .lb-toggle{flex-direction:row;margin-right:0;margin-bottom:8px;justify-content:center;gap:4px}
 .stat[style*="cursor"]:hover strong{opacity:0.7}
-@media(max-width:768px){#vc-label,#tc-label{display:inline-block;width:min-content;line-height:1.1;vertical-align:middle}.stats{justify-content:space-between;flex:1}}
 </style>
 </head>
 <body>
@@ -188,7 +187,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   <div class="stat" id="vc-stat" style="cursor:pointer"><strong id="vc">0</strong><span id="vc-label">blocks walked</span></div>
   <div class="stat" id="tc-stat" style="cursor:pointer"><strong id="tc">0</strong><span id="tc-label">blocks total</span></div>
   <div class="stat"><strong id="pc">0%</strong><span>done</span></div>
-  <div id="save-status" style="opacity:0"></div>
+  <div id="save-status" style="opacity:0;pointer-events:none"></div>
   <button class="dev-btn" id="dev-btn">DEV</button>
 </div>
 </header>
