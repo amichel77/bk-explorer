@@ -31,7 +31,7 @@ window.addEventListener('DOMContentLoaded',function(){
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0a0f;--sf:#14141f;--sf2:#1e1e2e;--bd:#2a2a3e;--tx:#e8e8f0;--dm:#8888a0;--ac:#00e5a0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column}
-header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:1003;flex-shrink:0;position:relative}
+header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:1003;flex-shrink:0}
 .lb-bar{background:var(--sf);border-bottom:1px solid var(--bd);padding:6px 16px;display:flex;align-items:center;justify-content:flex-start;z-index:999;flex-shrink:0}
 .lb{display:flex;align-items:center;gap:14px;font-family:'Space Mono',monospace;font-size:11px}
 .lb-entry{display:flex;align-items:center;gap:5px;color:var(--dm)}
@@ -187,9 +187,8 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   <div class="stat" id="tc-stat" style="cursor:pointer"><strong id="tc">0</strong><span id="tc-label">blocks total</span></div>
   <div class="stat"><strong id="pc">0%</strong><span>done</span></div>
   <div id="save-status" style="opacity:0;pointer-events:none"></div>
-
+  <a href="index.html" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7">&larr; PROD</a>
 </div>
-<a href="index.html" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7;position:absolute;top:10px;right:16px">&larr; PROD</a>
 </header>
 <div class="lb-bar"><div class="lb-toggle" id="lb-toggle"><span class="lb-tog-opt lb-tog-on" data-mode="blocks">blocks walked</span><span class="lb-tog-opt" data-mode="miles">miles walked</span></div><div class="lb" id="lb"></div></div>
 <div class="wrap">
