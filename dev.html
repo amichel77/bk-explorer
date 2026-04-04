@@ -170,6 +170,12 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .mob-btn .mob-btn-icon{font-size:16px}
 .mob-btn .mob-btn-label{font-size:7px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.5px}
 @media(max-width:768px){.mob-btn{display:flex}}
+.lb-toggle{display:flex;flex-direction:column;gap:2px;margin-right:14px;flex-shrink:0}
+.lb-tog-opt{font-family:'Space Mono',monospace;font-size:9px;color:var(--dm);cursor:pointer;padding:2px 8px;border-radius:4px;transition:all 0.15s;white-space:nowrap}
+.lb-tog-opt:hover{color:var(--tx)}
+.lb-tog-opt.lb-tog-on{color:var(--ac);background:var(--sf2)}
+.mob-lb .lb-toggle{flex-direction:row;margin-right:0;margin-bottom:8px;justify-content:center;gap:4px}
+.stat[style*="cursor"]:hover strong{opacity:0.7}
 </style>
 </head>
 <body>
@@ -177,14 +183,14 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 <header>
 <div class="logo"><div class="logo-icon" style="background:#ef4444">🛠</div><h1>BK<span>.</span>EXPLORER <span style="color:#ef4444;font-size:11px">DEV</span></h1><button class="mob-btn" id="mob-search-btn"><span class="mob-btn-icon">🔍</span><span class="mob-btn-label">Search</span></button><button class="mob-btn" id="mob-lb-btn"><span class="mob-btn-icon">🏆</span><span class="mob-btn-label">Leaderboard</span></button></div>
 <div class="stats">
-  <div class="stat"><strong id="vc">0</strong><span>blocks</span></div>
-  <div class="stat"><strong id="tc">0</strong><span>total</span></div>
+  <div class="stat" id="vc-stat" style="cursor:pointer"><strong id="vc">0</strong><span id="vc-label">blocks walked</span></div>
+  <div class="stat" id="tc-stat" style="cursor:pointer"><strong id="tc">0</strong><span id="tc-label">blocks total</span></div>
   <div class="stat"><strong id="pc">0%</strong><span>done</span></div>
   <div id="save-status" style="opacity:0"></div>
   <a href="index.html" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7">&larr; PROD</a>
 </div>
 </header>
-<div class="lb-bar"><div class="lb" id="lb"></div></div>
+<div class="lb-bar"><div class="lb-toggle" id="lb-toggle"><span class="lb-tog-opt lb-tog-on" data-mode="blocks">blocks walked</span><span class="lb-tog-opt" data-mode="miles">miles walked</span></div><div class="lb" id="lb"></div></div>
 <div class="wrap">
 <div id="map"></div>
 <div class="sb" id="sb">
@@ -305,6 +311,39 @@ let nhoodMap={}; // featureId -> neighborhood name
 
 function dec(s){const b=atob(s);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return JSON.parse(pako.inflate(a,{to:'string'}))}
 
+// Vincenty formula — WGS84 ellipsoid, accurate to ~0.5mm
+function vincenty(lat1,lon1,lat2,lon2){
+  const a=6378137,f=1/298.257223563,b=a*(1-f);
+  const toR=x=>x*Math.PI/180;
+  const L=toR(lon2-lon1);
+  const U1=Math.atan((1-f)*Math.tan(toR(lat1))),U2=Math.atan((1-f)*Math.tan(toR(lat2)));
+  const sU1=Math.sin(U1),cU1=Math.cos(U1),sU2=Math.sin(U2),cU2=Math.cos(U2);
+  let lam=L,lamP,iter=200;
+  let sinLam,cosLam,sinSig,cosSig,sig,sinAl,cosSqAl,cos2SM;
+  do{
+    sinLam=Math.sin(lam);cosLam=Math.cos(lam);
+    sinSig=Math.sqrt((cU2*sinLam)**2+(cU1*sU2-sU1*cU2*cosLam)**2);
+    if(sinSig===0)return 0;
+    cosSig=sU1*sU2+cU1*cU2*cosLam;
+    sig=Math.atan2(sinSig,cosSig);
+    sinAl=cU1*cU2*sinLam/sinSig;
+    cosSqAl=1-sinAl*sinAl;
+    cos2SM=cosSig-2*sU1*sU2/(cosSqAl||1);
+    if(isNaN(cos2SM))cos2SM=0;
+    const Cv=f/16*cosSqAl*(4+f*(4-3*cosSqAl));
+    lamP=lam;
+    lam=L+(1-Cv)*f*sinAl*(sig+Cv*sinSig*(cos2SM+Cv*cosSig*(-1+2*cos2SM*cos2SM)));
+  }while(Math.abs(lam-lamP)>1e-12&&--iter>0);
+  if(iter===0)return NaN;
+  const uSq=cosSqAl*(a*a-b*b)/(b*b);
+  const A=1+uSq/16384*(4096+uSq*(-768+uSq*(320-175*uSq)));
+  const B=uSq/1024*(256+uSq*(-128+uSq*(74-47*uSq)));
+  const dSig=B*sinSig*(cos2SM+B/4*(cosSig*(-1+2*cos2SM*cos2SM)-B/6*cos2SM*(-3+4*sinSig*sinSig)*(-3+4*cos2SM*cos2SM)));
+  return b*A*(sig-dSig);
+}
+function segLength(coords){let t=0;for(let i=1;i<coords.length;i++)t+=vincenty(coords[i-1][1],coords[i-1][0],coords[i][1],coords[i][0]);return t}
+let segMiles={},totalMiles=0,lbMode='blocks',vcMode='blocks',tcMode='blocks';
+
 // ======= FIREBASE REAL-TIME SYNC =======
 // Setup: create free Firebase project at console.firebase.google.com
 // 1. Create project -> Realtime Database -> Start in test mode  
@@ -400,28 +439,57 @@ let stt;function toast(m){const t=document.getElementById('toast');t.textContent
 
 function stats(){
   const t=geojson.features.length,v=Object.keys(SD).length;
-  const shared=Object.values(SD).filter(v=>Array.isArray(v)&&new Set(v).size>=2).length;
-  document.getElementById('vc').textContent=v;
-  document.getElementById('tc').textContent=t;
+  let walkedMi=0;
+  Object.keys(SD).forEach(id=>{walkedMi+=(segMiles[id]||0)});
+
+  // Header stats
+  if(vcMode==='blocks'){
+    document.getElementById('vc').textContent=v;
+    document.getElementById('vc-label').textContent='blocks walked';
+  }else{
+    document.getElementById('vc').textContent=walkedMi.toFixed(1);
+    document.getElementById('vc-label').textContent='miles walked';
+  }
+  if(tcMode==='blocks'){
+    document.getElementById('tc').textContent=t;
+    document.getElementById('tc-label').textContent='blocks total';
+  }else{
+    document.getElementById('tc').textContent=totalMiles.toFixed(1);
+    document.getElementById('tc-label').textContent='miles total';
+  }
   document.getElementById('pc').textContent=t?(v/t*100).toFixed(1)+'%':'0%';
-  // Leaderboard
-  const counts={};
-  Object.keys(C).forEach(k=>{if(k!=='green'&&k!=='white')counts[k]=0});
-  counts['green']=0;counts['white']=0;
-  Object.values(SD).forEach(val=>{
+
+  // Leaderboard — compute both blocks and miles
+  const counts={},miles={};
+  Object.keys(C).forEach(k=>{if(k!=='green'&&k!=='white'){counts[k]=0;miles[k]=0}});
+  counts['green']=0;counts['white']=0;miles['green']=0;miles['white']=0;
+  Object.entries(SD).forEach(([id,val])=>{
+    const m=segMiles[id]||0;
     const arr=Array.isArray(val)?val:[val];
     const unique=[...new Set(arr)];
     const playerCount=unique.filter(k=>PLAYER_KEYS.includes(k)).length;
-    if(playerCount>=5){counts['white']++}
-    else if(unique.includes('green')||unique.length>=2){counts['green']++}
-    arr.forEach(k=>{if(k!=='green'&&k!=='white'&&counts[k]!==undefined)counts[k]++});
+    if(playerCount>=5){counts['white']++;miles['white']+=m}
+    else if(unique.includes('green')||unique.length>=2){counts['green']++;miles['green']+=m}
+    arr.forEach(k=>{if(k!=='green'&&k!=='white'&&counts[k]!==undefined){counts[k]++;miles[k]+=m}});
   });
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const data=lbMode==='blocks'?counts:miles;
+  const sorted=Object.entries(data).sort((a,b)=>b[1]-a[1]);
+  const fmt=n=>lbMode==='blocks'?n:n.toFixed(1);
   const lb=document.getElementById('lb');
-  const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+n+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
+  const lbHtml=sorted.map(([k,n])=>'<div class="lb-entry"><div class="lb-dot" style="background:'+C[k].h+'"></div><span class="lb-count" style="color:'+C[k].h+'">'+fmt(n)+'</span><span class="lb-name">'+C[k].l+'</span></div>').join('');
   lb.innerHTML=lbHtml;
-  document.getElementById('mob-lb').innerHTML='<div class="mob-lb-title">Leaderboard</div>'+lbHtml;
+  // Mobile leaderboard with toggle
+  const mobTogHtml='<div class="lb-toggle" id="mob-lb-toggle"><span class="lb-tog-opt'+(lbMode==='blocks'?' lb-tog-on':'')+'" data-mode="blocks">blocks walked</span><span class="lb-tog-opt'+(lbMode==='miles'?' lb-tog-on':'')+'" data-mode="miles">miles walked</span></div>';
+  document.getElementById('mob-lb').innerHTML='<div class="mob-lb-title">Leaderboard</div>'+mobTogHtml+lbHtml;
+  document.querySelectorAll('#mob-lb-toggle .lb-tog-opt').forEach(opt=>{
+    opt.onclick=e=>{e.stopPropagation();lbMode=opt.dataset.mode;updateLbToggle();stats()};
+  });
   updateNhoods();
+}
+function updateLbToggle(){
+  document.querySelectorAll('#lb-toggle .lb-tog-opt').forEach(opt=>{
+    opt.classList.toggle('lb-tog-on',opt.dataset.mode===lbMode);
+  });
 }
 
 function updateNhoods(){
@@ -571,12 +639,21 @@ async function init(){
   const saved=await store.get(SK);
   if(saved)try{SD=JSON.parse(saved)}catch(e){}
 
-  pb.style.width='35%';lt.textContent='Decompressing streets...';
+  pb.style.width='25%';lt.textContent='Decompressing streets...';
   await new Promise(r=>setTimeout(r,30));
   geojson=dec(G);nameSeg=dec(NS);
   geojson.features.forEach(f=>{f.id=f.properties.i});
 
-  pb.style.width='55%';lt.textContent='Initializing WebGL map...';
+  pb.style.width='45%';lt.textContent='Computing distances...';
+  await new Promise(r=>setTimeout(r,30));
+  totalMiles=0;
+  geojson.features.forEach(f=>{
+    const m=segLength(f.geometry.coordinates)*0.000621371;
+    segMiles[f.properties.i]=m;
+    totalMiles+=m;
+  });
+
+  pb.style.width='60%';lt.textContent='Initializing WebGL map...';
   await new Promise(r=>setTimeout(r,30));
 
   map=new maplibregl.Map({
@@ -750,6 +827,15 @@ async function init(){
     stats();renderList();
     updateNhoods();
     document.getElementById('search').addEventListener('input',e=>renderList(e.target.value));
+
+    // Header stats toggle (blocks <-> miles)
+    document.getElementById('vc-stat').onclick=()=>{vcMode=vcMode==='blocks'?'miles':'blocks';stats()};
+    document.getElementById('tc-stat').onclick=()=>{tcMode=tcMode==='blocks'?'miles':'blocks';stats()};
+
+    // Desktop leaderboard toggle
+    document.querySelectorAll('#lb-toggle .lb-tog-opt').forEach(opt=>{
+      opt.onclick=()=>{lbMode=opt.dataset.mode;updateLbToggle();stats()};
+    });
 
     // Mobile leaderboard toggle
     const mobLbBtn=document.getElementById('mob-lb-btn');
