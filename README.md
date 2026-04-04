@@ -78,8 +78,8 @@ A collaborative map where 5 friends track every street they've walked in Brookly
 - **Database:** Firebase Realtime Database
 - **Compression:** pako (zlib) for embedded street data
 - **Fonts:** Google Fonts (DM Sans, Space Mono)
-- **Hosting:** GitHub Pages at bk-explorer.com
-- **Domain:** GoDaddy DNS -> GitHub Pages
+- **Hosting:** Vercel at bk-explorer.com
+- **Domain:** GoDaddy DNS -> Vercel
 
 ## Project Structure
 
@@ -95,24 +95,8 @@ bk-explorer/
 
 ## Deployment
 
-Hosted on GitHub Pages. Push to `master` to deploy:
+Hosted on Vercel. Deploy to production:
 
 ```bash
-git push origin master
+vercel --prod
 ```
-
-Or use the deploy script:
-
-```bash
-chmod +x deploy.sh && ./deploy.sh
-```
-
-## DNS Setup (GoDaddy)
-
-4 A records pointing to GitHub Pages:
-- 185.199.108.153
-- 185.199.109.153
-- 185.199.110.153
-- 185.199.111.153
-
-CNAME record: `www` -> `amichel77.github.io`
