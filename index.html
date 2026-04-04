@@ -857,6 +857,7 @@ async function init(){
     const mobRes=document.getElementById('mob-results');
     const mobSearchOv=document.createElement('div');
     mobSearchOv.style.cssText='display:none;position:fixed;inset:0;z-index:999';
+    mobSearchOv.onclick=()=>closeMobSearch();
     document.body.appendChild(mobSearchOv);
     let mobOpen=false;
     function closeMobSearch(){
