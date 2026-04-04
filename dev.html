@@ -169,7 +169,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .mob-btn{display:none;background:none;border:none;color:var(--dm);cursor:pointer;padding:2px 6px;flex-direction:column;align-items:center;gap:1px}
 .mob-btn .mob-btn-icon{font-size:16px}
 .mob-btn .mob-btn-label{font-size:7px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.5px}
-@media(max-width:768px){.mob-btn{display:flex}}
+@media(max-width:768px){.mob-btn{display:flex}#prod-link{order:-1}.stats{order:1;width:100%}}
 .lb-toggle{display:flex;flex-direction:column;gap:2px;margin-right:14px;flex-shrink:0}
 .lb-tog-opt{font-family:'Space Mono',monospace;font-size:9px;color:var(--dm);cursor:pointer;padding:2px 8px;border-radius:4px;transition:all 0.15s;white-space:nowrap}
 .lb-tog-opt:hover{color:var(--tx)}
@@ -182,13 +182,13 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 <div class="ov" id="ov"><div class="sp"></div><div class="lt" id="lt">Loading...</div><div class="pbg"><div class="pf" id="pb"></div></div></div>
 <header>
 <div class="logo"><div class="logo-icon" style="background:#ef4444">🛠</div><h1>BK<span>.</span>EXPLORER <span style="color:#ef4444;font-size:11px">DEV</span></h1><button class="mob-btn" id="mob-search-btn"><span class="mob-btn-icon">🔍</span><span class="mob-btn-label">Search</span></button><button class="mob-btn" id="mob-lb-btn"><span class="mob-btn-icon">🏆</span><span class="mob-btn-label">Leaderboard</span></button></div>
-<a href="index.html" id="prod-link" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7;flex-shrink:0">&larr; PROD</a>
 <div class="stats">
   <div class="stat" id="vc-stat" style="cursor:pointer"><strong id="vc">0</strong><span id="vc-label">blocks walked</span></div>
   <div class="stat" id="tc-stat" style="cursor:pointer"><strong id="tc">0</strong><span id="tc-label">blocks total</span></div>
   <div class="stat"><strong id="pc">0%</strong><span>done</span></div>
   <div id="save-status" style="opacity:0;pointer-events:none"></div>
 </div>
+<a href="index.html" id="prod-link" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7;flex-shrink:0">&larr; PROD</a>
 </header>
 <div class="lb-bar"><div class="lb-toggle" id="lb-toggle"><span class="lb-tog-opt lb-tog-on" data-mode="blocks">blocks walked</span><span class="lb-tog-opt" data-mode="miles">miles walked</span></div><div class="lb" id="lb"></div></div>
 <div class="wrap">
