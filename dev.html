@@ -159,17 +159,17 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
 .mob-lb .lb-count{font-weight:700;font-size:13px;width:30px}
 .mob-lb .lb-name{font-size:11px}
 .mob-lb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1001}
-.mob-search{display:none;position:fixed;top:56px;left:8px;right:8px;z-index:1001;padding:10px;background:var(--sf);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+.mob-search{display:none;position:fixed;top:56px;left:8px;right:8px;z-index:1002;padding:10px;background:var(--sf);border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
 .mob-search-input{width:100%;padding:9px 12px 9px 34px;background:var(--sf2);border:1px solid var(--bd);border-radius:7px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
 .mob-search-input:focus{border-color:var(--ac)}
 .mob-search-input::placeholder{color:var(--dm)}
 .mob-search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--dm);font-size:14px;pointer-events:none}
-.mob-results{position:fixed;top:110px;left:8px;right:8px;bottom:60px;z-index:1000;background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow-y:auto;display:none;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+.mob-results{position:fixed;top:110px;left:8px;right:8px;bottom:60px;z-index:1002;background:var(--sf);border:1px solid var(--bd);border-radius:12px;overflow-y:auto;display:none;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
 .mob-results .sr{padding:12px 14px;border-bottom:1px solid var(--bd)}
 .mob-btn{display:none;background:none;border:none;color:var(--dm);cursor:pointer;padding:2px 6px;flex-direction:column;align-items:center;gap:1px}
 .mob-btn .mob-btn-icon{font-size:16px}
 .mob-btn .mob-btn-label{font-size:7px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.5px}
-@media(max-width:768px){.mob-btn{display:flex}}
+@media(max-width:768px){.mob-btn{display:flex}header{position:relative}#prod-link{position:absolute;top:8px;right:10px}}
 .lb-toggle{display:flex;flex-direction:column;gap:2px;margin-right:14px;flex-shrink:0}
 .lb-tog-opt{font-family:'Space Mono',monospace;font-size:9px;color:var(--dm);cursor:pointer;padding:2px 8px;border-radius:4px;transition:all 0.15s;white-space:nowrap}
 .lb-tog-opt:hover{color:var(--tx)}
@@ -187,7 +187,7 @@ header{background:var(--sf);border-bottom:1px solid var(--bd);padding:10px 16px;
   <div class="stat" id="tc-stat" style="cursor:pointer"><strong id="tc">0</strong><span id="tc-label">blocks total</span></div>
   <div class="stat"><strong id="pc">0%</strong><span>done</span></div>
   <div id="save-status" style="opacity:0;pointer-events:none"></div>
-  <a href="index.html" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7">&larr; PROD</a>
+  <a href="index.html" id="prod-link" style="font-size:9px;color:var(--ac);font-family:'Space Mono',monospace;text-decoration:none;opacity:0.7">&larr; PROD</a>
 </div>
 </header>
 <div class="lb-bar"><div class="lb-toggle" id="lb-toggle"><span class="lb-tog-opt lb-tog-on" data-mode="blocks">blocks walked</span><span class="lb-tog-opt" data-mode="miles">miles walked</span></div><div class="lb" id="lb"></div></div>
@@ -856,7 +856,7 @@ async function init(){
     const mobInput=document.getElementById('mob-search-input');
     const mobRes=document.getElementById('mob-results');
     const mobSearchOv=document.createElement('div');
-    mobSearchOv.style.cssText='display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.4)';
+    mobSearchOv.style.cssText='display:none;position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,0.4)';
     mobSearchOv.onclick=()=>closeMobSearch();
     document.body.appendChild(mobSearchOv);
     let mobOpen=false;
