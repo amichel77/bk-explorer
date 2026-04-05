@@ -40,16 +40,22 @@ A collaborative map where 5 friends track every street they've walked in Brookly
 - **Collapsible sidebar** — collapse to just the color picker with the arrow button
 
 ### Mobile
-- **Paint mode** — floating color picker at bottom with "PAINT MODE" label
-- **Search button** — magnifying glass icon in header, opens full-screen search
+- **Paint mode** — floating color picker at bottom with "PAINT MODE" label, larger buttons with rounded corners
+- **Search button** — magnifying glass icon in header, opens rounded search popup with dark overlay; tap outside to dismiss
 - **Leaderboard button** — trophy icon in header, opens centered popup overlay
 - **Legend** — floating above the color picker
-- **Map blocking** — map interaction disabled when search is open
 
 ### Leaderboard
-- **Desktop** — left-aligned bar below the header showing per-person block counts, ranked
-- **Mobile** — centered popup overlay toggled from header button
+- **Desktop** — left-aligned bar below the header with "blocks walked" / "miles walked" toggle
+- **Mobile** — centered popup overlay toggled from header button, with toggle at top
 - Includes shared and everyone counts
+- Miles calculated using Vincenty formula (WGS84 ellipsoid, ~0.5mm accuracy)
+
+### Header Stats
+- **Blocks walked** — click to toggle between block count and miles walked
+- **Blocks total** — click to toggle between total blocks and total miles
+- **% done** — percentage of all blocks visited
+- Toggles are independent and reset to blocks on refresh
 
 ### Hover/Highlight
 - **Map hover** — subtle silver glow when hovering streets on the map
