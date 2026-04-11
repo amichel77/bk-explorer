@@ -247,6 +247,7 @@ function isUserBanned(bans,k){
 }
 function getBackupUrl(k){return FIREBASE_URL?FIREBASE_URL+'/bk_explorer/ban_backups/'+k+'.json':null}
 async function stripUserPaint(k){
+  console.log('STRIP: starting for color',k,'SD keys:',Object.keys(SD).length);
   // Backup this user's blocks before removing
   const backup=[];
   Object.keys(SD).forEach(id=>{
@@ -254,23 +255,26 @@ async function stripUserPaint(k){
     const arr=Array.isArray(val)?val:[val];
     if(arr.includes(k))backup.push(id);
   });
+  console.log('STRIP: found',backup.length,'blocks with color',k);
   const url=getBackupUrl(k);
-  if(url)try{await fetch(url,{method:'PUT',body:JSON.stringify(backup)})}catch(e){}
+  if(url)try{await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(backup)})}catch(e){console.log('STRIP: backup failed',e)}
   // Remove this user's color from all blocks
-  let changed=false;
+  let changed=false;let removed=0;
   Object.keys(SD).forEach(id=>{
     const val=SD[id];if(!val)return;
     const arr=Array.isArray(val)?val:[val];
     const filtered=arr.filter(c=>c!==k);
     if(filtered.length===arr.length)return;
-    changed=true;
+    changed=true;removed++;
     if(filtered.length===0)delete SD[id];
     else if(filtered.length===1)SD[id]=filtered[0];
     else SD[id]=filtered;
     dirtyIds[id]=Date.now();
     if(map)applySegStyle(id);
   });
+  console.log('STRIP: removed from',removed,'blocks, SD now has',Object.keys(SD).length,'keys, changed=',changed);
   if(changed){try{localStorage.setItem(SK,JSON.stringify(SD))}catch(e){}await doSave();stats();renderList(document.getElementById('search').value)}
+  else{console.log('STRIP: NO CHANGES — SD values sample:',JSON.stringify(Object.entries(SD).slice(0,5)))}
 }
 async function restoreUserPaint(k){
   const url=getBackupUrl(k);
