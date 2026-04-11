@@ -367,6 +367,9 @@ let store = {
             localStorage.setItem(k, JSON.stringify(d));
             return JSON.stringify(d);
           }
+          // Remote is empty/null — trust it, clear local cache
+          localStorage.setItem(k, '{}');
+          return '{}';
         }
       } catch(e) {}
     }
