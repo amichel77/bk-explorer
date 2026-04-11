@@ -265,12 +265,12 @@ async function stripUserPaint(k){
     if(filtered.length===arr.length)return;
     changed=true;
     if(filtered.length===0)delete SD[id];
-    else if(filtered.length===1)SD[id]=filtered;
+    else if(filtered.length===1)SD[id]=filtered[0];
     else SD[id]=filtered;
     dirtyIds[id]=Date.now();
     if(map)applySegStyle(id);
   });
-  if(changed){await doSave();stats();renderList(document.getElementById('search').value)}
+  if(changed){try{localStorage.setItem(SK,JSON.stringify(SD))}catch(e){}await doSave();stats();renderList(document.getElementById('search').value)}
 }
 async function restoreUserPaint(k){
   const url=getBackupUrl(k);
