@@ -247,20 +247,30 @@ function isUserBanned(bans,k){
 }
 function getBackupUrl(k){return FIREBASE_URL?FIREBASE_URL+'/bk_explorer/ban_backups/'+k+'.json':null}
 async function stripUserPaint(k){
-  syncPaused=true;
-  try{
+  // Backup this user's blocks before removing
   const backup=[];
-  for(const id of Object.keys(SD)){const val=SD[id];if(!val)continue;const arr=Array.isArray(val)?val:[val];if(arr.includes(k))backup.push(id)}
-  const burl=getBackupUrl(k);
-  if(burl)try{await fetch(burl,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(backup)})}catch(e){}
-  for(const id of Object.keys(SD)){const val=SD[id];if(!val)continue;const arr=Array.isArray(val)?val:[val];if(!arr.includes(k))continue;const filtered=arr.filter(c=>c!==k);if(filtered.length===0)delete SD[id];else if(filtered.length===1)SD[id]=filtered[0];else SD[id]=filtered}
-  const sv=JSON.stringify(SD);
-  try{localStorage.setItem(SK,sv)}catch(e){}
-  const rurl=getRemoteUrl();
-  if(rurl)await fetch(rurl,{method:'PUT',headers:{'Content-Type':'application/json'},body:sv});
-  if(map&&geojson){geojson.features.forEach(f=>{map.setFeatureState({source:'streets',id:f.properties.i},{c:displayColor(f.properties.i)})})}
-  stats();try{renderList(document.getElementById('search').value)}catch(e){}
-  }finally{setTimeout(()=>{syncPaused=false},5000)}
+  Object.keys(SD).forEach(id=>{
+    const val=SD[id];if(!val)return;
+    const arr=Array.isArray(val)?val:[val];
+    if(arr.includes(k))backup.push(id);
+  });
+  const url=getBackupUrl(k);
+  if(url)try{await fetch(url,{method:'PUT',body:JSON.stringify(backup)})}catch(e){}
+  // Remove this user's color from all blocks
+  let changed=false;
+  Object.keys(SD).forEach(id=>{
+    const val=SD[id];if(!val)return;
+    const arr=Array.isArray(val)?val:[val];
+    const filtered=arr.filter(c=>c!==k);
+    if(filtered.length===arr.length)return;
+    changed=true;
+    if(filtered.length===0)delete SD[id];
+    else if(filtered.length===1)SD[id]=filtered;
+    else SD[id]=filtered;
+    dirtyIds[id]=Date.now();
+    if(map)applySegStyle(id);
+  });
+  if(changed){await doSave();stats();renderList(document.getElementById('search').value)}
 }
 async function restoreUserPaint(k){
   const url=getBackupUrl(k);
@@ -357,9 +367,6 @@ let store = {
             localStorage.setItem(k, JSON.stringify(d));
             return JSON.stringify(d);
           }
-          // Remote is empty/null — trust it, clear local cache
-          localStorage.setItem(k, '{}');
-          return '{}';
         }
       } catch(e) {}
     }
@@ -379,12 +386,10 @@ let store = {
   }
 };
 
-let syncPaused=false;
 function startRealtimeSync() {
   const url = getRemoteUrl();
   if (!url) return;
   setInterval(async () => {
-    if(syncPaused)return;
     try {
       const r = await fetch(url);
       if (!r.ok) return;
